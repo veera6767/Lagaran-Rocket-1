@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #050608;
+    color: #e2e8f0;
+  }
+}
+
+.font-orbitron {
+  font-family: 'Orbitron', 'Rajdhani', sans-serif;
+}
+
+.font-tech {
+  font-family: 'Share Tech Mono', 'JetBrains Mono', monospace;
+}
+
+.font-rajdhani {
+  font-family: 'Rajdhani', sans-serif;
+}
+
+/* Glassmorphic futuristic HUD panel */
+.hud-panel {
+  background: rgba(5, 7, 12, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  box-shadow: 0 0 25px rgba(0, 229, 255, 0.06), 0 20px 40px rgba(0, 0, 0, 0.9);
+}
+
+/* Glow helper utilities */
+.glow-cyan-sm {
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
+}
+
+.glow-cyan-md {
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.45);
+}
+
+.glow-cyan-text {
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.7), 0 0 24px rgba(0, 229, 255, 0.35);
+}
+
+.glow-amber-sm {
+  box-shadow: 0 0 12px rgba(255, 90, 31, 0.4);
+}
+
+/* Range input styling for futuristic electric cyan glow slider */
+input[type='range'].hud-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  outline: none;
+}
+
+input[type='range'].hud-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #00e5ff;
+  cursor: pointer;
+  box-shadow: 0 0 10px #00e5ff, 0 0 18px rgba(0, 229, 255, 0.8);
+  border: 2px solid #ffffff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type='range'].hud-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+  box-shadow: 0 0 16px #00e5ff, 0 0 24px rgba(0, 229, 255, 1);
+}
+
+input[type='range'].hud-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #00e5ff;
+  cursor: pointer;
+  box-shadow: 0 0 10px #00e5ff, 0 0 18px rgba(0, 229, 255, 0.8);
+  border: 2px solid #ffffff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.2);
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 229, 255, 0.6);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+}

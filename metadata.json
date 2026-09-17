@@ -1,0 +1,6 @@
+{
+  "name": "LAGARAM-1 Rocket Inspector",
+  "description": "Interactive 3D model and engineering inspector for the LAGARAM-1 suborbital sounding rocket, featuring procedural PBR materials, exploded view, and CG/CP stability analysis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
