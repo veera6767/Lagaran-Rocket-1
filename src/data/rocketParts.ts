@@ -1,262 +1,537 @@
 import { RocketPartInfo } from '../types';
 
+/**
+ * =========================================================================
+ * ROCKET_SPEC: Single Source of Truth for Geometry, Masses, and Review 2 PPT Data
+ * =========================================================================
+ */
+export const ROCKET_SPEC = {
+  project: {
+    name: 'LAGARAM-1',
+    fullTitle: 'Performance Characterization of a Sounding Rocket for Weather Applications',
+    academicContext: 'B.Tech Aerospace Engineering, Final Year Project Phase 1',
+    team: 'Jayanthan M, Hari Kasav C',
+    guide: 'Dr. Vishnu Kumar G.C, Associate Professor',
+    reviewPhase: 'Review 2',
+    sourceTag: 'Source: Review 2 PPT',
+  },
+
+  airframe: {
+    totalLengthMm: 2000,
+    totalLengthM: 2.00,
+    outerDiameterMm: 102,
+    wallThicknessMm: 3,
+    innerDiameterMm: 96, // derived: 102 - 2 * 3
+    outerRadiusMm: 51,
+    innerRadiusMm: 48,
+    finenessRatio: 19.61, // 2000 / 102
+  },
+
+  // Axial layout from nose tip (x = 0) toward the tail (x = 2000 mm)
+  // Check: 550 + 250 + 400 + 800 = 2000 mm
+  axialLayout: {
+    noseCone: {
+      startMm: 0,
+      endMm: 550,
+      lengthMm: 550,
+      finenessRatio: 5.39, // 550 / 102 = 5.39:1 (Von Karman profile)
+    },
+    avionicsBay: {
+      startMm: 550,
+      endMm: 800,
+      lengthMm: 250,
+    },
+    drogueBay: {
+      startMm: 800,
+      endMm: 1200,
+      lengthMm: 400,
+    },
+    boosterSection: {
+      startMm: 1200,
+      endMm: 2000,
+      lengthMm: 800,
+    },
+    innerMotor: {
+      startMm: 1300,
+      endMm: 2000,
+      lengthMm: 700, // inside booster section, aft-aligned
+    },
+  },
+
+  // Stabilizing Fins (x4)
+  fins: {
+    count: 4,
+    material: 'G10 Fiberglass Composite',
+    rootChordMm: 170,
+    tipChordMm: 62,
+    semiSpanMm: 85,
+    thicknessMm: 6,
+    totalMassKg: 0.44, // 0.11 kg per fin
+    spanTipToTipMm: 272, // 102 + 2 * 85
+  },
+
+  // Inner Motor: M1928
+  motor: {
+    designation: 'M1928',
+    software: 'OpenMotor',
+    totalImpulseNs: 7926,
+    averageThrustN: 1943,
+    burnTimeS: 4.08,
+    avgChamberPressurePsi: 672,
+    peakChamberPressurePsi: 1138,
+    deliveredIspS: 258.4,
+    grainConfig: 'Four-segment BATES grain (progressive thrust curve)',
+    burnRateCoeffA: '0.025 in/s/psi^n',
+    burnRateExponentN: 0.35,
+    casingMaterial: '6061-T6 Aluminium',
+    casingOuterDiameterMm: 98,
+    casingWallThicknessMm: 4, // 4 mm wall (increased from 3 mm)
+    casingInnerDiameterMm: 90, // 98 - 2 * 4
+    casingLengthMm: 700,
+    casingMassKg: 2.39, // Casing + hardware (including exhaust nozzle)
+    propellantComposition: '70/16/14 AP/Al/HTPB',
+    propellantMassKg: 3.13,
+    totalMotorMassKg: 5.52, // 2.39 + 3.13
+    hoopStressMpa: 92.2,
+    factorOfSafety: 2.99,
+    badge: 'OPENROCKET + RASAERO II',
+  },
+
+  // NASA CEA Thermochemical Data (70/16/14 AP/Al/HTPB at 600 psia)
+  nasaCea: {
+    propellant: '70/16/14 AP/Al/HTPB at 600 psia',
+    chamberTempK: 3723.7,
+    throatTempK: 3549.2,
+    exitTempK: 2626.8,
+    chamberPressureBar: 41.368,
+    exitPressureBar: 1.086,
+    exitMach: 2.817,
+    thrustCoefficient: 1.5485,
+    cStarMs: 1743.6,
+    theoreticalIspS: 275.2,
+    deliveredIspS: 236, // eta = 0.87
+    deliveredEta: 0.87,
+    exhaustSpecies: [
+      { species: 'Al2O3(l)', percentage: '30.1%' },
+      { species: 'CO', percentage: '27.6%' },
+      { species: 'HCl', percentage: '20.8%' },
+    ],
+    thermalNote: 'The high chamber temperature (3,723.7 K) needs a graphite or graphite-phenolic throat insert.',
+  },
+
+  // Flight Simulation Comparison (OpenRocket vs RASAero II)
+  flightSimulation: {
+    openRocket: {
+      apogeeM: 5206,
+      maxVelocityMs: 531,
+      maxMach: 1.58,
+      timeToApogeeS: 29.8,
+      maxAccelerationMs2: 232, // Labelled explicitly as OpenRocket run
+      peakDragLb: 'Not in review',
+      peakCd: 'Not in review',
+    },
+    rasAeroII: {
+      apogeeM: 4493,
+      maxVelocityMs: 528.5,
+      maxMach: 1.55,
+      timeToApogeeS: 27.5,
+      maxAccelerationMs2: 'Not in review',
+      peakDragLb: '~280 lb',
+      peakCd: '~1.08',
+    },
+    supersonicNote: 'OpenRocket is not accurate above Mach 1; RASAero II used for better drag/stability prediction.',
+    targetApogeeDisplay: '5,206 m (OpenRocket) | 4,493 m (RASAero II)',
+  },
+
+  // Aerodynamic Stability & Fin Flutter
+  stability: {
+    cgMmFromNose: 1290,
+    cpMmFromNose: 1530,
+    marginDistanceMm: 240, // 1530 - 1290
+    marginCalibersOpenRocket: 2.38,
+    marginCalibersHandCalc: 2.2,
+    targetBandCalibers: '2.0 to 2.5 cal',
+    status: 'Within Optimal Range',
+    isWithinRange: true,
+  },
+
+  finFlutter: {
+    standard: 'NACA TN 4197',
+    material: 'G10 Fiberglass',
+    shearModulusGpa: 5.34,
+    flutterVelocityMs: 1428,
+    maxSpeedMs: 531,
+    safetyMargin: '2.69x',
+    rule: 'Safe if max speed << flutter velocity (531 m/s << 1,428 m/s)',
+    isSafe: true,
+  },
+
+  // Rail Exit Velocity Table (Min required: 15.0 m/s)
+  railExitVelocity: {
+    minRequiredMs: 15.0,
+    railLengths: [
+      { length: '1 m Rail', velocityMs: 10.6, status: 'NOT SAFE', safe: false },
+      { length: '6 m Rail', velocityMs: 27.4, status: 'Very Safe', safe: true },
+      { length: '7 m Rail', velocityMs: 30.1, status: 'Excellent', safe: true },
+      { length: '8 m Rail', velocityMs: 32.1, status: 'Excellent', safe: true },
+    ],
+  },
+
+  // Raw Itemized Masses (kg)
+  itemizedMasses: {
+    noseConeShell: 0.61, // carbon fibre composite shell 550 mm
+    mainParachuteHarness: 0.45, // main parachute + harness housed in nose cone
+    avionicsTube: 0.43, // 250 mm tube
+    avionicsPayload: 2.30, // flight computers, sensors, payload
+    drogueTube: 0.69, // 400 mm tube
+    drogueParachuteHardware: 0.50, // drogue parachute + deployment hardware
+    boosterTube: 1.38, // 800 mm booster tube
+    motorCasingHardware: 2.39, // 6061-T6 casing + hardware + nozzle
+    motorPropellant: 3.13, // 70/16/14 AP/Al/HTPB solid propellant
+    finsTotal: 0.44, // 4x G10 fiberglass fins
+    miscHardwareEpoxyPaint: 1.00, // not drawn, counted in total only
+  },
+} as const;
+
+/**
+ * =========================================================================
+ * COMPUTED TOTALS (Derived automatically from ROCKET_SPEC, never typed in)
+ * =========================================================================
+ */
+const m = ROCKET_SPEC.itemizedMasses;
+
+// Total wet mass = 0.61 + 0.45 + 0.43 + 2.30 + 0.69 + 0.50 + 1.38 + 2.39 + 3.13 + 0.44 + 1.00 = 13.32 kg
+const computedWetMassKg =
+  m.noseConeShell +
+  m.mainParachuteHarness +
+  m.avionicsTube +
+  m.avionicsPayload +
+  m.drogueTube +
+  m.drogueParachuteHardware +
+  m.boosterTube +
+  m.motorCasingHardware +
+  m.motorPropellant +
+  m.finsTotal +
+  m.miscHardwareEpoxyPaint;
+
+// Mass without motor (minus casing and propellant) = 13.32 - (2.39 + 3.13) = 7.80 kg
+const computedMassWithoutMotorKg =
+  computedWetMassKg - (m.motorCasingHardware + m.motorPropellant);
+
+// Burnout mass (minus propellant) = 13.32 - 3.13 = 10.19 kg
+const computedBurnoutMassKg = computedWetMassKg - m.motorPropellant;
+
+export const VEHICLE_TOTALS = {
+  wetMassKg: Number(computedWetMassKg.toFixed(2)), // 13.32
+  dryMassKg: Number(computedMassWithoutMotorKg.toFixed(2)), // 7.80
+  burnoutMassKg: Number(computedBurnoutMassKg.toFixed(2)), // 10.19
+};
+
+/**
+ * Complete Itemized Mass Breakdown for UI inspection
+ */
+export const MASS_BREAKDOWN = [
+  { item: 'Nose Cone Shell', material: 'Carbon Fibre', massKg: m.noseConeShell, category: 'Fairing' },
+  { item: 'Main Parachute + Harness', material: 'Ripstop / Kevlar', massKg: m.mainParachuteHarness, category: 'Recovery' },
+  { item: 'Avionics Bay Tube', material: 'Fiberglass (250 mm)', massKg: m.avionicsTube, category: 'Structure' },
+  { item: 'Avionics + Weather Payload', material: 'Electronics / Sled', massKg: m.avionicsPayload, category: 'Payload' },
+  { item: 'Drogue Bay Tube', material: 'Fiberglass (400 mm)', massKg: m.drogueTube, category: 'Structure' },
+  { item: 'Drogue Parachute + Hardware', material: 'Canopy / Harness', massKg: m.drogueParachuteHardware, category: 'Recovery' },
+  { item: 'Booster Section Tube', material: 'Fiberglass (800 mm)', massKg: m.boosterTube, category: 'Structure' },
+  { item: 'Inner Motor Casing + Hardware', material: '6061-T6 Aluminium', massKg: m.motorCasingHardware, category: 'Propulsion' },
+  { item: 'Solid Propellant (M1928)', material: '70/16/14 AP/Al/HTPB', massKg: m.motorPropellant, category: 'Propulsion' },
+  { item: 'Stabilizing Fins (x4)', material: 'G10 Fiberglass', massKg: m.finsTotal, category: 'Empennage' },
+  { item: 'Misc Hardware / Epoxy / Paint', material: 'Aerospace Fasteners', massKg: m.miscHardwareEpoxyPaint, category: 'Integration' },
+];
+
+/**
+ * =========================================================================
+ * ROCKET_PARTS: Rebuilt nose-to-tail with exact Review 2 PPT data & Section 2 layout
+ * =========================================================================
+ */
 export const ROCKET_PARTS: RocketPartInfo[] = [
   {
-    id: 'nozzle',
-    name: 'Exhaust Nozzle',
-    assembly: 'Engine / Motor Assembly',
-    order: 1,
-    material: 'Stainless Steel / Graphite Insert',
-    finish: 'CNC lathe-turned 304/316 stainless steel conical bell with isostatic graphite throat insert',
-    massKg: 0.80,
-    lengthMm: 180,
-    diameterMm: 98,
-    description: 'Precision lathe-turned stainless steel conical expansion nozzle. Engineered with a clean supersonic conical bell contour that flows continuously from the motor casing converging section, featuring an isostatically pressed high-density graphite throat insert to resist 2,900 K erosion.',
+    id: 'nose-cone',
+    name: 'Nose Cone',
+    assembly: 'Forward Aerodynamic Fairing',
+    order: 1, // Nose to tail
+    material: 'Carbon Fibre Composite',
+    finish: 'Autoclave-cured clear-coated 2x2 twill Carbon Fibre Grey (#8B939B)',
+    colorSwatch: '#8B939B',
+    colorName: 'Carbon Fibre Grey',
+    massKg: Number((m.noseConeShell + m.mainParachuteHarness).toFixed(2)), // 1.06 kg (0.61 shell + 0.45 chute)
+    lengthMm: ROCKET_SPEC.axialLayout.noseCone.lengthMm, // 550 mm
+    startMm: ROCKET_SPEC.axialLayout.noseCone.startMm, // 0 mm
+    endMm: ROCKET_SPEC.axialLayout.noseCone.endMm, // 550 mm
+    outerDiameterMm: ROCKET_SPEC.airframe.outerDiameterMm, // 102 mm
+    innerDiameterMm: ROCKET_SPEC.airframe.innerDiameterMm, // 96 mm
+    wallThicknessMm: ROCKET_SPEC.airframe.wallThicknessMm, // 3 mm
+    finenessRatio: '5.39 : 1',
+    description: 'Von Kármán (minimum supersonic wave drag) profile aerodynamic fairing with a high fineness ratio of 5.39:1 (550 mm length / 102 mm base diameter). Fabricated from autoclave-cured 2x2 twill carbon fibre composite with a glossy clear-coated Carbon Fibre Grey (#8B939B) finish. Features a light silver aluminium pitot air-data probe at the apex and houses the main parachute + tubular Kevlar deployment harness.',
     technicalDetails: [
-      'Conical bell expansion geometry flowing seamlessly from casing converging taper',
-      'High-purity isostatic graphite throat insert resisting high-pressure erosion at 6.2 MPa',
-      'Machined external retaining shoulder collar and precision-turned exit lip',
-      'High-temperature Viton O-ring seal interface meeting aft casing flange'
+      'Von Kármán LD-Haack supersonic aerodynamic series (fineness ratio 5.39:1, 550 mm length)',
+      'Carbon-fibre composite shell (0.61 kg) with clear-coated Carbon Fibre Grey (#8B939B) finish',
+      'Machined light silver 6061-T6 aluminium pitot probe tip for air-data stagnation pressure',
+      'Houses the main toroidal recovery parachute + Kevlar shock harness (0.45 kg)',
+      'Smooth aerodynamic shoulder interface mating flush to forward avionics bay'
     ],
     specs: [
-      { label: 'Bell Alloy', value: '304/316 Stainless Steel' },
-      { label: 'Throat Insert', value: 'Isostatic Graphite' },
-      { label: 'Exit Diameter', value: '65.0 mm' },
-      { label: 'Expansion Ratio', value: '7.8 : 1' }
+      { label: 'Length', value: '550 mm' },
+      { label: 'Base Diameter', value: '102 mm' },
+      { label: 'Fineness Ratio', value: '5.39 : 1' },
+      { label: 'Wall Thickness', value: '3.0 mm' },
+      { label: 'Shell Mass', value: '0.61 kg' },
+      { label: 'Main Parachute', value: '0.45 kg' },
+      { label: 'Finish Tone', value: 'Carbon Fibre Grey (#8B939B)' },
+      { label: 'Profile Form', value: 'Von Kármán (Haack)' }
     ],
-    explodedYOffset: -1.1
+    subParts: [
+      { name: 'Carbon Fibre Shell', massKg: m.noseConeShell, note: '550 mm Von Karman fairing' },
+      { name: 'Main Parachute + Harness', massKg: m.mainParachuteHarness, note: 'Primary high-altitude recovery' },
+      { name: 'Aluminium Pitot Tip', note: 'Machined light silver air-data probe' }
+    ],
+    explodedYOffset: 3.2
   },
   {
-    id: 'motor-casing',
-    name: 'Motor Casing',
-    assembly: 'Engine / Motor Assembly',
+    id: 'avionics-bay',
+    name: 'Avionics Bay',
+    assembly: 'Avionics & Payload Bay',
     order: 2,
-    material: 'Stainless Steel (304/316)',
-    finish: 'Lathe-turned polished stainless steel (98 mm OD, 4 mm wall) with top flange & fittings',
-    massKg: 2.39,
-    lengthMm: 620,
-    diameterMm: 98,
-    description: 'Lab-machined cylindrical stainless steel pressure vessel chamber (98 mm OD, 4 mm wall thickness, 2.39 kg empty mass). Features a stepped top circular flange with an 8-bolt circle, protruding igniter and right-angle pneumatic valve fittings, and a smooth converging conical section necking down to the nozzle throat.',
+    material: 'Filament-Wound Fiberglass Composite',
+    finish: 'Smooth protective gloss finish with RF-transparent telemetry window',
+    massKg: Number((m.avionicsTube + m.avionicsPayload).toFixed(2)), // 2.73 kg (0.43 tube + 2.30 payload)
+    lengthMm: ROCKET_SPEC.axialLayout.avionicsBay.lengthMm, // 250 mm
+    startMm: ROCKET_SPEC.axialLayout.avionicsBay.startMm, // 550 mm
+    endMm: ROCKET_SPEC.axialLayout.avionicsBay.endMm, // 800 mm
+    outerDiameterMm: ROCKET_SPEC.airframe.outerDiameterMm, // 102 mm
+    innerDiameterMm: ROCKET_SPEC.airframe.innerDiameterMm, // 96 mm
+    wallThicknessMm: ROCKET_SPEC.airframe.wallThicknessMm, // 3 mm
+    description: 'Cylindrical 250 mm RF-transparent composite section housing the flight computers, 9-DOF IMU, telemetry radios, barometric sensors, and atmospheric sounding instruments. Replaces the former payload bay. Features internal visual 6061-T6 aluminium avionics bulkheads (with no separate mass penalty, included in payload).',
     technicalDetails: [
-      'Dimensions: 98 mm OD, 4 mm wall thickness, 2.39 kg empty chamber mass',
-      'Top flange cap with 8-bolt circular pattern (hex head fasteners with washers)',
-      'Top fittings: off-center spark-plug igniter (ceramic ribs) & right-angle pneumatic elbow',
-      'Smooth converging conical taper necking down to throat mating retention collar'
+      'Dimensions: 250 mm axial length, 102 mm OD, 96 mm ID (3 mm hollow composite wall)',
+      'Hollow cylinder allows internal mounting of shock-damped carbon fiber electronics sled',
+      'Structural tube mass 0.43 kg + combined avionics/sensor payload mass 2.30 kg',
+      'RF-transparent fiberglass walls enable internal 915 MHz / 2.4 GHz telemetry transmission',
+      'Visual CNC-machined aluminium avionics bulkheads isolate avionics from recovery gas'
     ],
     specs: [
-      { label: 'Chamber Material', value: '304 Stainless Steel' },
-      { label: 'Outer Diameter', value: '98 mm' },
-      { label: 'Wall Thickness', value: '4 mm' },
-      { label: 'Chamber Mass', value: '2.39 kg' },
-      { label: 'Proof Pressure', value: '14.0 MPa' },
-      { label: 'Motor Class', value: 'M1928-P (Sim-Confirmed)' }
+      { label: 'Length', value: '250 mm' },
+      { label: 'Start / End Pos', value: '550 → 800 mm' },
+      { label: 'Outer Diameter', value: '102 mm' },
+      { label: 'Inner Diameter', value: '96 mm' },
+      { label: 'Wall Thickness', value: '3.0 mm' },
+      { label: 'Tube Mass', value: '0.43 kg' },
+      { label: 'Avionics/Payload', value: '2.30 kg' },
+      { label: 'Section Mass', value: '2.73 kg' }
     ],
-    explodedYOffset: -0.5
+    subParts: [
+      { name: 'Airframe Tube', massKg: m.avionicsTube, note: '250 mm length, 3 mm wall' },
+      { name: 'Avionics & Weather Payload', massKg: m.avionicsPayload, note: 'Flight computers & sensors' },
+      { name: 'Avionics Bulkheads', note: 'Visual internal, mass included in payload' }
+    ],
+    explodedYOffset: 1.8
+  },
+  {
+    id: 'drogue-bay',
+    name: 'Drogue Bay',
+    assembly: 'Recovery Subsystem',
+    order: 3,
+    material: 'Filament-Wound Fiberglass Composite',
+    finish: 'Filament-wound aerospace fiberglass tube with radial static ports',
+    massKg: Number((m.drogueTube + m.drogueParachuteHardware).toFixed(2)), // 1.19 kg (0.69 tube + 0.50 drogue)
+    lengthMm: ROCKET_SPEC.axialLayout.drogueBay.lengthMm, // 400 mm
+    startMm: ROCKET_SPEC.axialLayout.drogueBay.startMm, // 800 mm
+    endMm: ROCKET_SPEC.axialLayout.drogueBay.endMm, // 1200 mm
+    outerDiameterMm: ROCKET_SPEC.airframe.outerDiameterMm, // 102 mm
+    innerDiameterMm: ROCKET_SPEC.airframe.innerDiameterMm, // 96 mm
+    wallThicknessMm: ROCKET_SPEC.airframe.wallThicknessMm, // 3 mm
+    description: 'Cylindrical 400 mm recovery compartment housing the high-altitude drogue parachute, ejection charge canisters, and shock harness. Replaces the former recovery section. Contains a visual interstage bulkhead at its base with no separate mass penalty, providing structural anchor points for recovery shock lines.',
+    technicalDetails: [
+      'Dimensions: 400 mm length, 102 mm outer diameter, 96 mm inner diameter, 3 mm wall',
+      'Structural tube mass 0.69 kg + drogue parachute and deployment hardware 0.50 kg',
+      'Dual ejection charge deployment initiates drogue deployment precisely at apogee',
+      'Visual internal 6061-T6 interstage bulkhead with shock cord forged eyebolt',
+      'Calibrated shear pin ports ensure reliable mechanical compartment separation'
+    ],
+    specs: [
+      { label: 'Length', value: '400 mm' },
+      { label: 'Start / End Pos', value: '800 → 1200 mm' },
+      { label: 'Outer Diameter', value: '102 mm' },
+      { label: 'Inner Diameter', value: '96 mm' },
+      { label: 'Wall Thickness', value: '3.0 mm' },
+      { label: 'Tube Mass', value: '0.69 kg' },
+      { label: 'Drogue Hardware', value: '0.50 kg' },
+      { label: 'Section Mass', value: '1.19 kg' }
+    ],
+    subParts: [
+      { name: 'Airframe Tube', massKg: m.drogueTube, note: '400 mm length, 3 mm wall' },
+      { name: 'Drogue Parachute + Hardware', massKg: m.drogueParachuteHardware, note: 'Apogee stabilization canopy' },
+      { name: 'Interstage Bulkhead', note: 'Visual internal, mass included in assembly' }
+    ],
+    explodedYOffset: 0.8
+  },
+  {
+    id: 'booster-section',
+    name: 'Booster Section',
+    assembly: 'Airframe / Propulsion Bay',
+    order: 4,
+    material: 'Filament-Wound Fiberglass Composite',
+    finish: 'High-rigidity composite structural cylinder housing inner motor',
+    massKg: m.boosterTube, // 1.38 kg
+    lengthMm: ROCKET_SPEC.axialLayout.boosterSection.lengthMm, // 800 mm
+    startMm: ROCKET_SPEC.axialLayout.boosterSection.startMm, // 1200 mm
+    endMm: ROCKET_SPEC.axialLayout.boosterSection.endMm, // 2000 mm
+    outerDiameterMm: ROCKET_SPEC.airframe.outerDiameterMm, // 102 mm
+    innerDiameterMm: ROCKET_SPEC.airframe.innerDiameterMm, // 96 mm
+    wallThicknessMm: ROCKET_SPEC.airframe.wallThicknessMm, // 3 mm
+    description: 'Main structural propulsion airframe cylinder (800 mm length, 102 mm OD, 96 mm ID, 3 mm wall, 1.38 kg mass). Hollow composite construction rendered with realistic wall thickness. Houses the separate internal M1928 solid rocket motor in its aft 700 mm portion and provides flush external mounting saddles for the 4 cruciform stabilizing fins.',
+    technicalDetails: [
+      'Dimensions: 800 mm axial length, 102 mm OD, 96 mm ID, 3 mm hollow wall thickness',
+      'Structural tube empty mass: 1.38 kg (excludes internal motor and external fins)',
+      'Houses 700 mm internal M1928 solid rocket motor from 1300 mm to 2000 mm aft',
+      'Provides high torsional and bending stiffness against maximum aerodynamic Q',
+      'Clear view into internal motor casing during exploded view and wireframe mode'
+    ],
+    specs: [
+      { label: 'Length', value: '800 mm' },
+      { label: 'Start / End Pos', value: '1200 → 2000 mm' },
+      { label: 'Outer Diameter', value: '102 mm' },
+      { label: 'Inner Diameter', value: '96 mm' },
+      { label: 'Wall Thickness', value: '3.0 mm' },
+      { label: 'Section Mass', value: '1.38 kg' },
+      { label: 'Internal Motor', value: 'M1928 (700 mm)' },
+      { label: 'External Fins', value: '4x Cruciform' }
+    ],
+    explodedYOffset: -0.2
+  },
+  {
+    id: 'inner-motor',
+    name: 'Inner Motor (M1928)',
+    assembly: 'Solid Rocket Motor',
+    order: 5,
+    material: '6061-T6 Aluminium / Isostatic Graphite',
+    finish: 'CNC-machined 6061-T6 casing (98 mm OD, 4 mm wall) with aft expansion nozzle',
+    massKg: Number((m.motorCasingHardware + m.motorPropellant).toFixed(2)), // 5.52 kg (2.39 casing + 3.13 prop)
+    lengthMm: ROCKET_SPEC.motor.casingLengthMm, // 700 mm
+    startMm: ROCKET_SPEC.axialLayout.innerMotor.startMm, // 1300 mm
+    endMm: ROCKET_SPEC.axialLayout.innerMotor.endMm, // 2000 mm
+    outerDiameterMm: ROCKET_SPEC.motor.casingOuterDiameterMm, // 98 mm
+    innerDiameterMm: ROCKET_SPEC.motor.casingInnerDiameterMm, // 90 mm
+    wallThicknessMm: ROCKET_SPEC.motor.casingWallThicknessMm, // 4 mm
+    description: 'Separate internal propulsion component housed inside the booster section (aft-aligned from 1300 to 2000 mm). High-strength 6061-T6 aluminium casing (98 mm OD, 4 mm wall thickness, 2.39 kg casing + hardware). Loaded with 3.13 kg of 70/16/14 AP/Al/HTPB solid propellant arranged in a four-segment BATES grain. Features a forward 8-bolt flange, spark-plug igniter, 90° pneumatic valve elbow, and a visual supersonic exhaust nozzle bell with graphite throat insert.',
+    technicalDetails: [
+      'Dimensions: 700 mm length, 98 mm OD, 4 mm wall (increased from 3 mm), 90 mm ID',
+      'Empty casing + hardware mass 2.39 kg (6061-T6); propellant mass 3.13 kg',
+      'Total Impulse: 7,926 N·s; Average Thrust: 1,943 N; Burn Time: 4.08 s',
+      'Average Chamber Pressure: 672 psi; Peak Chamber Pressure: 1,138 psi',
+      'Delivered Isp: 258.4 s; Hoop Stress: 92.2 MPa; Structural Factor of Safety: 2.99',
+      'Visual stainless steel expansion nozzle with high-purity isostatic graphite throat insert'
+    ],
+    specs: [
+      { label: 'Designation', value: 'M1928' },
+      { label: 'Length', value: '700 mm' },
+      { label: 'Axial Pos', value: '1300 → 2000 mm' },
+      { label: 'Outer Diameter', value: '98 mm' },
+      { label: 'Wall Thickness', value: '4.0 mm' },
+      { label: 'Casing Mass', value: '2.39 kg (6061-T6)' },
+      { label: 'Propellant Mass', value: '3.13 kg' },
+      { label: 'Total Impulse', value: '7,926 N·s' },
+      { label: 'Average Thrust', value: '1,943 N' },
+      { label: 'Burn Time', value: '4.08 s' },
+      { label: 'Delivered Isp', value: '258.4 s' },
+      { label: 'Safety Factor', value: '2.99 (92.2 MPa)' }
+    ],
+    subParts: [
+      { name: '6061-T6 Motor Casing', massKg: m.motorCasingHardware, note: '98 mm OD, 4 mm wall, 700 mm' },
+      { name: 'BATES Propellant Grain', massKg: m.motorPropellant, note: '3.13 kg 70/16/14 AP/Al/HTPB' },
+      { name: 'Exhaust Nozzle Bell', note: 'Visual sub-part, included in casing mass' },
+      { name: 'Forward Flange & Fittings', note: '8-bolt circle, igniter & pneumatic elbow' }
+    ],
+    explodedYOffset: -1.2
   },
   {
     id: 'fins',
     name: 'Stabilizing Fins (x4)',
     assembly: 'Aerodynamic Empennage',
-    order: 3,
+    order: 6,
     material: 'G10 Fiberglass Composite',
-    finish: 'Matte off-white/cream G10 composite with precision double-wedge beveled knife edges',
-    massKg: 1.05,
-    lengthMm: 200, // Scaled root chord (+18% from 170 mm base)
-    diameterMm: 390, // Tip-to-tip span (+18% scaled)
-    description: 'Cruciform four-fin passive aerodynamic stabilization array mounted flush against the motor casing exterior. Precision-machined from high-strength G10 fiberglass composite with an authentic matte off-white/cream finish, featuring surface-mounted flush tangent brackets and double-wedge supersonic chamfered edges to maintain high flutter margins.',
+    finish: 'Precision double-wedge supersonic chamfered edges, matte finish',
+    massKg: m.finsTotal, // 0.44 kg total
+    lengthMm: ROCKET_SPEC.fins.rootChordMm, // 170 mm
+    startMm: 1830,
+    endMm: 2000,
+    outerDiameterMm: ROCKET_SPEC.fins.spanTipToTipMm, // 272 mm
+    innerDiameterMm: ROCKET_SPEC.airframe.outerDiameterMm, // 102 mm root circle
+    wallThicknessMm: ROCKET_SPEC.fins.thicknessMm, // 6 mm
+    description: 'Cruciform four-fin aerodynamic stabilization empennage machined from G10 fiberglass composite (0.44 kg total mass). Each fin features a 170 mm root chord, 62 mm tip chord, 85 mm semi-span, and 6.0 mm thickness with supersonic double-wedge beveled knife edges. Mounted flush to the aft booster section exterior to provide active aerodynamic restoring moments.',
     technicalDetails: [
-      'G10 fiberglass composite with matte off-white/cream finish & double-wedge supersonic profile',
-      'Surface-mounted flush tangent root brackets with aerospace retention fasteners',
-      'Base pre-scale dimensions: 170 mm root chord, 62 mm tip chord, 85 mm semi-span',
-      'Scaled up ~18% for enhanced aerodynamic stability authority (+2.38 calibers / 12.2% margin)'
+      'Cruciform 4-fin geometry: 170 mm root chord, 62 mm tip chord, 85 mm semi-span, 6 mm thick',
+      'Total empennage mass: 0.44 kg (0.11 kg per fin, reduced from old 1.05 kg)',
+      'G10 fiberglass with shear modulus 5.34 GPa for exceptional aeroelastic stiffness',
+      'NACA TN 4197 fin flutter velocity 1,428 m/s vs max speed 531 m/s (2.69x safety margin)',
+      'Provides aerodynamic stability margin of +2.38 calibers (OpenRocket) / ~2.2 cal (hand calc)'
     ],
     specs: [
       { label: 'Fin Count', value: '4 cruciform (90°)' },
-      { label: 'Material', value: 'G10 Fiberglass' },
-      { label: 'Surface Finish', value: 'Matte Off-White' },
-      { label: 'Root Chord', value: '200 mm (170 mm base)' },
-      { label: 'Tip Chord', value: '73 mm (62 mm base)' },
-      { label: 'Semi-Span', value: '100 mm (85 mm base)' }
+      { label: 'Total Mass', value: '0.44 kg' },
+      { label: 'Root Chord', value: '170 mm' },
+      { label: 'Tip Chord', value: '62 mm' },
+      { label: 'Semi-Span', value: '85 mm' },
+      { label: 'Fin Thickness', value: '6.0 mm' },
+      { label: 'Flutter Velocity', value: '1,428 m/s' },
+      { label: 'Flutter Margin', value: '2.69x (Safe)' }
     ],
-    explodedYOffset: -0.9,
-    explodedRadialOffset: 1.4 // Kicks outward radially
-  },
-  {
-    id: 'bulkhead-lower',
-    name: 'Interstage Bulkhead',
-    assembly: 'Structural Isolation',
-    order: 4,
-    material: 'Aluminium 6061-T6',
-    finish: 'CNC-machined aluminium disc with dual O-ring seal & thermal barrier',
-    massKg: 0.34,
-    lengthMm: 15,
-    diameterMm: 102,
-    description: 'High-rigidity hermetic bulkhead dividing the forward closure of the solid motor from the recovery bay. Machined from 6061-T6 aluminium with a phenolic insulation puck and dual radial O-ring seals.',
-    technicalDetails: [
-      'Withstands 8.0 kN axial ejection charge thrust dynamic pressure',
-      'Dual fluoroelastomer O-rings isolate hot motor gases from parachute compartment',
-      'Centrally mounted forged eyebolt for drogue shock cord anchoring',
-      'Integrated mounting well for redundant black powder separation canisters'
-    ],
-    specs: [
-      { label: 'Material', value: 'Aluminium 6061-T6' },
-      { label: 'Disc Web Thickness', value: '8.0 mm' },
-      { label: 'Proof Load', value: '18.0 kN axial' },
-      { label: 'Seal Rating', value: 'Dual Viton O-Ring' }
-    ],
-    explodedYOffset: 0.1
-  },
-  {
-    id: 'recovery-bay',
-    name: 'Recovery Section',
-    assembly: 'Recovery Subsystem',
-    order: 5,
-    material: 'Fiberglass Composite',
-    finish: 'Filament-wound aerospace fiberglass tube with radial shear pin ports',
-    massKg: 2.10,
-    lengthMm: 480,
-    diameterMm: 102,
-    description: 'Cylindrical recovery section fabricated from lightweight filament-wound aerospace fiberglass. Houses the dual-event parachute mechanism including high-altitude drogue parachute, main toroidal parachute, and tubular Kevlar bridle.',
-    technicalDetails: [
-      'Dual-deployment sequence: drogue at apogee, main canopy deployed at 350 m AGL',
-      '3x 2.5 mm precision nylon radial shear pins calibrate mechanical separation threshold',
-      '4x 3.0 mm static pressure equalization sampling ports for barometric altimeters',
-      'Flame-resistant Nomex deployment bag and 12 kN tubular Kevlar shock harness'
-    ],
-    specs: [
-      { label: 'Airframe Material', value: 'Fiberglass Composite' },
-      { label: 'Main Canopy Dia', value: '2.4 m Toroidal' },
-      { label: 'Drogue Canopy Dia', value: '450 mm Hemispherical' },
-      { label: 'Terminal Descent', value: '4.8 m/s' }
-    ],
-    explodedYOffset: 1.1
-  },
-  {
-    id: 'bulkhead-upper',
-    name: 'Avionics Bulkhead',
-    assembly: 'Structural Isolation',
-    order: 6,
-    material: 'Aluminium 6061-T6',
-    finish: 'CNC-machined aluminium disc with cable pass-throughs & mounting bosses',
-    massKg: 0.28,
-    lengthMm: 15,
-    diameterMm: 102,
-    description: 'Forward barrier providing mechanical mounting foundation for the avionics sled while sealing sensitive flight computers and science payload instruments from parachute deployment dynamics and ejection gases.',
-    technicalDetails: [
-      'Twin forged eyebolts rated to 15 kN for recovery tether linkage',
-      'Hermetically sealed pass-through grommets for external arming switches',
-      'Hard-anodized MIL-A-8625 Type III surface finish for corrosion resistance',
-      'Direct structural coupler interface aligning payload and recovery bays'
-    ],
-    specs: [
-      { label: 'Material', value: 'Aluminium 6061-T6' },
-      { label: 'Disc Web Thickness', value: '6.5 mm' },
-      { label: 'Harness Proof Load', value: '15.0 kN' },
-      { label: 'Coupler Shoulder', value: '50.0 mm engagement' }
-    ],
-    explodedYOffset: 2.1
-  },
-  {
-    id: 'payload-bay',
-    name: 'Payload Bay',
-    assembly: 'Avionics & Science Bay',
-    order: 7,
-    material: 'Fiberglass Composite',
-    finish: 'Filament-wound aerospace fiberglass with flush external access panel',
-    massKg: 1.85,
-    lengthMm: 380,
-    diameterMm: 102,
-    description: 'Cylindrical RF-transparent avionics and scientific instrumentation bay constructed from filament-wound fiberglass. Contains dual redundant 32-bit flight computers, 9-DOF IMU, GPS telemetry transmitters, and barometric altimeters.',
-    technicalDetails: [
-      'RF-transparent fiberglass walls enable internal telemetry antennas without external drag pods',
-      'Machined flush access hatch secured with countersunk stainless steel fasteners',
-      'Internal carbon fiber avionics sled with silicone shock-damping standoffs',
-      'Dual 32-bit ARM Cortex flight controllers recording telemetry at 500 Hz'
-    ],
-    specs: [
-      { label: 'Airframe Material', value: 'Fiberglass Composite' },
-      { label: 'RF Permittivity', value: 'εr = 4.2 (Transparent)' },
-      { label: 'Telemetry Link', value: '915 MHz / 2.4 GHz' },
-      { label: 'Battery Capacity', value: '2,200 mAh LiPo' }
-    ],
-    explodedYOffset: 3.1
-  },
-  {
-    id: 'nose-cone',
-    name: 'Nose Cone',
-    assembly: 'Forward Aerodynamic Fairing',
-    order: 8,
-    material: 'Carbon Fibre Composite',
-    finish: 'Autoclave-cured 2x2 twill carbon fibre with clear epoxy finish & metal tip',
-    massKg: 0.85,
-    lengthMm: 450,
-    diameterMm: 102,
-    description: 'Von Kármán (minimum supersonic wave drag) profile aerodynamic fairing. Fabricated from autoclave-cured 2x2 twill carbon fibre composite with an integrated aluminium pitot tip probe for air-data stagnation pressure sensing.',
-    technicalDetails: [
-      'Von Kármán LD-Haack supersonic aerodynamic series (fineness ratio 3.75 : 1)',
-      'Sharp machined 6061-T6 air-data pitot probe for total pressure measurement',
-      'Internal carbon fiber bulkhead housing forward GPS tracking beacon and antenna',
-      'Autoclave cured at 6 bar / 130 °C for exceptional stiffness-to-weight ratio'
-    ],
-    specs: [
-      { label: 'Fairing Material', value: 'Carbon Fibre Composite' },
-      { label: 'Fineness Ratio', value: '3.75 : 1' },
-      { label: 'Aero Profile', value: 'Von Kármán (Haack)' },
-      { label: 'Stagnation Temp', value: '260 °C at Mach 1.58' }
-    ],
-    explodedYOffset: 4.3
+    explodedYOffset: -0.6,
+    explodedRadialOffset: 0.45
   }
 ];
 
+/**
+ * Convenience Vehicle Summary object for Header and Top Level Stats
+ */
+export const VEHICLE_SUMMARY = {
+  designation: ROCKET_SPEC.project.name,
+  vehicleClass: 'Suborbital Aerodynamic Vehicle • Single-Stage Solid Rocket',
+  totalLengthM: ROCKET_SPEC.airframe.totalLengthM,
+  totalLengthMm: ROCKET_SPEC.airframe.totalLengthMm,
+  outerDiameterMm: ROCKET_SPEC.airframe.outerDiameterMm,
+  innerDiameterMm: ROCKET_SPEC.airframe.innerDiameterMm,
+  wallThicknessMm: ROCKET_SPEC.airframe.wallThicknessMm,
+  wetMassKg: VEHICLE_TOTALS.wetMassKg, // 13.32 kg
+  dryMassKg: VEHICLE_TOTALS.dryMassKg, // 7.80 kg
+  burnoutMassKg: VEHICLE_TOTALS.burnoutMassKg, // 10.19 kg
+  maxVelocityMs: ROCKET_SPEC.flightSimulation.openRocket.maxVelocityMs, // 531
+  maxMach: 'Mach 1.58',
+  targetApogeeDisplay: ROCKET_SPEC.flightSimulation.targetApogeeDisplay,
+  centerOfGravityMm: ROCKET_SPEC.stability.cgMmFromNose, // 1290 mm
+  centerOfPressureMm: ROCKET_SPEC.stability.cpMmFromNose, // 1530 mm
+  stabilityMarginCalibers: ROCKET_SPEC.stability.marginCalibersOpenRocket, // 2.38
+  stabilityMarginHandCalc: ROCKET_SPEC.stability.marginCalibersHandCalc, // 2.2
+  targetBandCalibers: ROCKET_SPEC.stability.targetBandCalibers, // 2.0 to 2.5 cal
+  motorDesignation: ROCKET_SPEC.motor.designation, // M1928
+  totalImpulseNs: ROCKET_SPEC.motor.totalImpulseNs, // 7926
+  averageThrustN: ROCKET_SPEC.motor.averageThrustN, // 1943
+  burnTimeS: ROCKET_SPEC.motor.burnTimeS, // 4.08
+  badge: ROCKET_SPEC.motor.badge, // OPENROCKET + RASAERO II
+};
+
 export const OPENROCKET_SIMULATION = {
-  software: 'OpenRocket Simulation',
-  status: 'Confirmed Simulation Data',
+  software: 'OpenRocket + RASAero II',
+  status: 'Review 2 PPT Confirmed',
   totalLengthCm: 200,
   totalLengthM: 2.00,
   maxDiameterMm: 102,
   maxDiameterCm: 10.2,
-  dryMassG: 7842,
-  dryMassKg: 7.842,
-  wetMassG: 13970,
-  wetMassKg: 13.97,
+  dryMassKg: VEHICLE_TOTALS.dryMassKg,
+  wetMassKg: VEHICLE_TOTALS.wetMassKg,
   cgCmFromNose: 129,
   cpCmFromNose: 153,
   stabilityMarginCalibers: 2.38,
-  stabilityMarginPercent: 12.2,
-  stabilityMarginCm: 24,
-  motor: 'M1928-P',
+  stabilityMarginHandCalc: 2.2,
+  targetBand: '2.0 to 2.5 cal',
+  motor: 'M1928',
   apogeeM: 5206,
-  apogeeKm: 5.21,
   maxVelocityMs: 531,
-  maxMach: 1.576,
-  maxMachFormatted: 'Mach 1.576',
+  maxMachFormatted: 'Mach 1.58',
   maxAccelerationMs2: 232,
-};
-
-export const VEHICLE_SUMMARY = {
-  designation: 'LAGARAM-1',
-  vehicleClass: 'Suborbital Aerodynamic Vehicle • Single-Stage Solid Rocket',
-  totalLengthM: 2.00,
-  totalLengthCm: 200,
-  diameterMm: 102,
-  maxDiameterCm: 10.2,
-  dryMassKg: 7.842,
-  dryMassG: 7842,
-  wetMassKg: 13.97,
-  wetMassG: 13970,
-  centerOfGravityCm: 129,
-  centerOfGravityMm: 1290,
-  centerOfPressureCm: 153,
-  centerOfPressureMm: 1530,
-  staticStabilityCalibers: 2.38,
-  staticStabilityPercent: 12.2,
-  stabilityMarginCm: 24,
-  motorConfig: 'M1928-P',
-  maxApogeeM: 5206,
-  maxApogeeKm: 5.21,
-  maxVelocityMs: 531,
-  maxMach: 'Mach 1.576',
-  maxAccelerationMs2: 232,
-  peakThrustKn: 3.6,
-  primaryMission: 'Suborbital Aerodynamic Vehicle • Single-Stage Solid Rocket Engineering Inspector'
 };

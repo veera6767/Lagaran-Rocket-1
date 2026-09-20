@@ -129,6 +129,7 @@ export function createBrushedAluminiumBumpTexture(): THREE.CanvasTexture {
 /**
  * Procedural 2x2 Twill Carbon Fibre texture.
  * Generates characteristic woven tow blocks with fiber striations and anisotropic sheen.
+ * Calibrated for Carbon Fibre Grey (#8B939B) with glossy clear coat.
  */
 export function createCarbonFiberTexture(): THREE.CanvasTexture {
   const size = 512;
@@ -137,39 +138,39 @@ export function createCarbonFiberTexture(): THREE.CanvasTexture {
   canvas.height = size;
   const ctx = canvas.getContext('2d')!;
 
-  ctx.fillStyle = '#14161a';
+  // Neutral mid-grey base tone
+  ctx.fillStyle = '#8b939b';
   ctx.fillRect(0, 0, size, size);
 
   const tileSize = 32;
-  const halfTile = tileSize / 2;
 
   for (let y = 0; y < size; y += tileSize) {
     for (let x = 0; x < size; x += tileSize) {
       // 2x2 twill pattern logic
       const isHorizontal = ((x / tileSize) % 2 === (y / tileSize) % 2);
 
-      // Weave block base
-      const baseTone = isHorizontal ? 24 : 32;
-      ctx.fillStyle = `rgb(${baseTone},${baseTone + 2},${baseTone + 5})`;
+      // Weave block base: alternating light and shadow tows for 2x2 twill
+      const baseTone = isHorizontal ? 142 : 128;
+      ctx.fillStyle = `rgb(${baseTone},${baseTone + 4},${baseTone + 8})`;
       ctx.fillRect(x, y, tileSize, tileSize);
 
       // Micro fiber strand lines within tow
       if (isHorizontal) {
         for (let py = 0; py < tileSize; py += 2) {
-          const v = baseTone + Math.floor(Math.sin((py / tileSize) * Math.PI) * 22);
-          ctx.fillStyle = `rgb(${v},${v + 2},${v + 4})`;
+          const v = baseTone + Math.floor(Math.sin((py / tileSize) * Math.PI) * 20);
+          ctx.fillStyle = `rgb(${v},${v + 3},${v + 6})`;
           ctx.fillRect(x, y + py, tileSize, 1.2);
         }
       } else {
         for (let px = 0; px < tileSize; px += 2) {
-          const v = baseTone + Math.floor(Math.sin((px / tileSize) * Math.PI) * 22);
-          ctx.fillStyle = `rgb(${v},${v + 2},${v + 4})`;
+          const v = baseTone + Math.floor(Math.sin((px / tileSize) * Math.PI) * 20);
+          ctx.fillStyle = `rgb(${v},${v + 3},${v + 6})`;
           ctx.fillRect(x + px, y, 1.2, tileSize);
         }
       }
 
       // Border shadow between tows
-      ctx.strokeStyle = 'rgba(8, 10, 12, 0.6)';
+      ctx.strokeStyle = 'rgba(40, 48, 56, 0.45)';
       ctx.lineWidth = 1;
       ctx.strokeRect(x, y, tileSize, tileSize);
     }
@@ -178,7 +179,7 @@ export function createCarbonFiberTexture(): THREE.CanvasTexture {
   const tex = new THREE.CanvasTexture(canvas);
   tex.wrapS = THREE.RepeatWrapping;
   tex.wrapT = THREE.RepeatWrapping;
-  tex.repeat.set(6, 6);
+  tex.repeat.set(8, 8);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.needsUpdate = true;
   return tex;
@@ -291,8 +292,8 @@ export function createLatheStainlessSteelTexture(): THREE.CanvasTexture {
   // Very subtle laser-etched hardware marking
   ctx.fillStyle = 'rgba(75, 82, 92, 0.65)';
   ctx.font = 'bold 20px monospace';
-  ctx.fillText('LAGARAM-1 // SOLID ROCKET MOTOR // 316L SS', 40, 480);
-  ctx.fillText('98mm OD x 4mm WALL // PROOF 12.5 MPa // M1928-P', 40, 506);
+  ctx.fillText('LAGARAM-1 // SOLID ROCKET MOTOR // 6061-T6 AL', 40, 480);
+  ctx.fillText('98mm OD x 4mm WALL // 7926 N·s // M1928', 40, 506);
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.wrapS = THREE.RepeatWrapping;
@@ -474,22 +475,55 @@ export function createRocketMaterials() {
   });
 
   // 8. Nose Cone: Autoclave-cured 2x2 twill Carbon Fibre Composite
+  // Calibrated to Carbon Fibre Grey (#8B939B), metalness ~0.5, roughness ~0.3 for glossy clear coat
   const noseConeMaterial = new THREE.MeshStandardMaterial({
-    color: 0x1a1d22,
+    color: 0x8b939b, // Base colour #8B939B (mid grey)
     map: carbonFiberTex,
     bumpMap: carbonFiberTex,
-    bumpScale: 0.018,
-    metalness: 0.18,
-    roughness: 0.30,
-    envMapIntensity: 1.3,
+    bumpScale: 0.008,
+    metalness: 0.5,
+    roughness: 0.3,
+    envMapIntensity: 1.6,
   });
 
-  // Pitot air-data tip probe: Machined 6061-T6 Aluminium
+  // Pitot air-data tip probe: Machined 6061-T6 Aluminium (light silver)
   const pitotTipMaterial = new THREE.MeshStandardMaterial({
-    color: 0xecf0f5,
-    metalness: 0.98,
-    roughness: 0.18,
-    envMapIntensity: 1.75,
+    color: 0xeef2f7,
+    metalness: 0.96,
+    roughness: 0.16,
+    envMapIntensity: 1.8,
+  });
+
+  // Internal Parachute Pack: High-visibility aerospace ripstop nylon
+  const parachuteMaterial = new THREE.MeshStandardMaterial({
+    color: 0xff5a1f,
+    roughness: 0.65,
+    metalness: 0.12,
+    envMapIntensity: 0.8,
+  });
+
+  // Internal Drogue Parachute Pack: Crisp neon safety yellow / gold
+  const drogueParachuteMaterial = new THREE.MeshStandardMaterial({
+    color: 0xfaad14,
+    roughness: 0.60,
+    metalness: 0.15,
+    envMapIntensity: 0.9,
+  });
+
+  // Internal Solid Propellant BATES Grain: 70/16/14 AP/Al/HTPB composite grain (dark charcoal)
+  const propellantGrainMaterial = new THREE.MeshStandardMaterial({
+    color: 0x24282f,
+    roughness: 0.85,
+    metalness: 0.08,
+    envMapIntensity: 0.35,
+  });
+
+  // Internal Avionics Circuit Sled Material
+  const avionicsCircuitMaterial = new THREE.MeshStandardMaterial({
+    color: 0x183c2e,
+    roughness: 0.45,
+    metalness: 0.35,
+    envMapIntensity: 1.0,
   });
 
   return {
@@ -507,6 +541,10 @@ export function createRocketMaterials() {
     payloadMaterial,
     noseConeMaterial,
     pitotTipMaterial,
+    parachuteMaterial,
+    drogueParachuteMaterial,
+    propellantGrainMaterial,
+    avionicsCircuitMaterial,
     brushedBumpTex,
     carbonFiberTex,
     fiberglassTex,

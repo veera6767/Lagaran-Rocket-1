@@ -1,61 +1,55 @@
 import React, { useState } from 'react';
-import { Layers, ChevronDown, ChevronUp, Cpu, Flame, Disc, Radio, Wind, Sparkles, Eye } from 'lucide-react';
-import { ROCKET_PARTS } from '../data/rocketParts';
+import { Layers, ChevronDown, ChevronUp, Flame, Disc, Radio, Wind, Eye, Scale, ShieldAlert } from 'lucide-react';
+import { ROCKET_PARTS, VEHICLE_TOTALS } from '../data/rocketParts';
 import { RocketPartInfo } from '../types';
 
 interface PartsListProps {
   selectedPartId: string | null;
   onSelectPart: (partId: string | null) => void;
   onFocusPreset?: (partId: string) => void;
+  onOpenMassBreakdown?: () => void;
 }
 
 export const PartsList: React.FC<PartsListProps> = ({
   selectedPartId,
   onSelectPart,
   onFocusPreset,
+  onOpenMassBreakdown,
 }) => {
   const [collapsed, setCollapsed] = useState(false);
-
-  // Group parts: note nozzle (1) & motor casing (2) as "Engine / Motor Assembly"
-  // Let's reverse for visual top-to-bottom stack in UI (or bottom-to-top toggle)
-  // Stacked bottom to top as defined:
-  // 1: Nozzle
-  // 2: Motor casing
-  // 3: Fins
-  // 4: Bulkhead 1
-  // 5: Recovery section
-  // 6: Bulkhead 2
-  // 7: Payload bay
-  // 8: Nose cone
-  const [sortOrder, setSortOrder] = useState<'top-down' | 'bottom-up'>('top-down');
+  const [sortOrder, setSortOrder] = useState<'nose-to-tail' | 'tail-to-nose'>('nose-to-tail');
 
   const orderedParts = [...ROCKET_PARTS].sort((a, b) =>
-    sortOrder === 'top-down' ? b.order - a.order : a.order - b.order
+    sortOrder === 'nose-to-tail' ? a.order - b.order : b.order - a.order
   );
 
   const getPartIcon = (id: string) => {
     switch (id) {
       case 'nose-cone':
-        return <Wind className="w-3.5 h-3.5 text-[#4FD9C7]" />;
-      case 'payload-bay':
-        return <Radio className="w-3.5 h-3.5 text-slate-300" />;
-      case 'bulkhead-upper':
-      case 'bulkhead-lower':
-        return <Disc className="w-3.5 h-3.5 text-slate-400" />;
-      case 'recovery-bay':
-        return <Layers className="w-3.5 h-3.5 text-[#4FD9C7]" />;
+        return <Wind className="w-3.5 h-3.5 text-[#8B939B]" />;
+      case 'avionics-bay':
+        return <Radio className="w-3.5 h-3.5 text-cyan-300" />;
+      case 'drogue-bay':
+        return <Layers className="w-3.5 h-3.5 text-cyan-400" />;
+      case 'booster-section':
+        return <Disc className="w-3.5 h-3.5 text-slate-300" />;
+      case 'inner-motor':
+        return <Flame className="w-3.5 h-3.5 text-[#FF5A1F]" />;
       case 'fins':
         return <Wind className="w-3.5 h-3.5 text-slate-300" />;
-      case 'motor-casing':
-      case 'nozzle':
-        return <Flame className="w-3.5 h-3.5 text-[#FF5A1F]" />;
       default:
-        return <Cpu className="w-3.5 h-3.5 text-slate-400" />;
+        return <Disc className="w-3.5 h-3.5 text-slate-400" />;
     }
   };
 
   return (
     <aside className="pointer-events-auto w-full md:w-80 bg-[#05070d]/85 backdrop-blur-xl border border-cyan-500/25 rounded-xl shadow-[0_0_25px_rgba(0,229,255,0.06),0_15px_30px_rgba(0,0,0,0.85)] overflow-hidden flex flex-col max-h-[calc(100vh-140px)] relative">
+      {/* Decorative HUD Corner Bracket Highlights */}
+      <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-cyan-400/60 pointer-events-none rounded-tl-sm" />
+      <div className="absolute top-0 right-0 w-2.5 h-2.5 border-t-2 border-r-2 border-cyan-400/60 pointer-events-none rounded-tr-sm" />
+      <div className="absolute bottom-0 left-0 w-2.5 h-2.5 border-b-2 border-l-2 border-cyan-400/60 pointer-events-none rounded-bl-sm" />
+      <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2 border-cyan-400/60 pointer-events-none rounded-br-sm" />
+
       {/* Header */}
       <div className="p-3.5 border-b border-cyan-500/20 flex items-center justify-between bg-black/40">
         <div className="flex items-center gap-2">
@@ -64,18 +58,18 @@ export const PartsList: React.FC<PartsListProps> = ({
             Rocket Structure
           </h2>
           <span className="text-[10px] font-tech text-cyan-400 bg-cyan-950/40 px-1.5 py-0.5 rounded border border-cyan-500/30">
-            8 Sections
+            6 Sections
           </span>
         </div>
 
         <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={() => setSortOrder(sortOrder === 'top-down' ? 'bottom-up' : 'top-down')}
-            title="Toggle stack order"
+            onClick={() => setSortOrder(sortOrder === 'nose-to-tail' ? 'tail-to-nose' : 'nose-to-tail')}
+            title="Toggle assembly order"
             className="text-[10px] font-tech text-slate-400 hover:text-cyan-300 px-2 py-0.5 rounded bg-black/40 hover:bg-cyan-950/30 border border-cyan-500/20 transition-all cursor-pointer"
           >
-            {sortOrder === 'top-down' ? 'Nose → Engine' : 'Engine → Nose'}
+            {sortOrder === 'nose-to-tail' ? 'Nose → Tail' : 'Tail → Nose'}
           </button>
           <button
             type="button"
@@ -109,8 +103,7 @@ export const PartsList: React.FC<PartsListProps> = ({
 
           {orderedParts.map((part) => {
             const isSelected = selectedPartId === part.id;
-            const isEngineAssembly =
-              part.id === 'nozzle' || part.id === 'motor-casing';
+            const isMotor = part.id === 'inner-motor';
 
             return (
               <div
@@ -145,9 +138,11 @@ export const PartsList: React.FC<PartsListProps> = ({
                         )}
                       </div>
                       <div className="text-[10px] font-tech text-slate-400 flex items-center gap-1">
+                        <span>{part.lengthMm} mm</span>
+                        <span>•</span>
                         <span>{part.material.split('/')[0]}</span>
                         <span>•</span>
-                        <span className="text-cyan-300/90">{part.massKg} kg</span>
+                        <span className="text-cyan-300/90 font-bold">{part.massKg.toFixed(2)} kg</span>
                       </div>
                     </div>
                   </div>
@@ -159,41 +154,58 @@ export const PartsList: React.FC<PartsListProps> = ({
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onSelectPart(part.id);
                             onFocusPreset(part.id);
                           }}
-                          title={`Focus camera on ${part.name}`}
-                          className="p-1 rounded text-slate-400 hover:text-[#00E5FF] hover:bg-cyan-950/40 border border-transparent hover:border-cyan-500/30 transition-all cursor-pointer"
+                          className="p-1 rounded text-slate-400 hover:text-cyan-300 hover:bg-cyan-950/40 transition-colors"
+                          title="Center camera on part"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
                       )}
-                      {isEngineAssembly && (
-                        <span className="text-[9px] font-tech px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                          Propulsion
-                        </span>
-                      )}
-                      {part.id === 'fins' && (
-                        <span className="text-[9px] font-tech px-1.5 py-0.5 rounded bg-cyan-500/15 text-[#00E5FF] border border-cyan-400/30">
-                          Radial Deploy
-                        </span>
-                      )}
                     </div>
+                    <span className="text-[9px] font-tech px-1 rounded bg-black/40 text-slate-400 border border-cyan-500/10">
+                      {part.startMm}–{part.endMm}mm
+                    </span>
                   </div>
                 </div>
+
+                {/* Subparts pill badges if present */}
+                {part.subParts && part.subParts.length > 0 && (
+                  <div className="mt-2 pt-1.5 border-t border-cyan-500/10 flex flex-wrap gap-1">
+                    {part.subParts.map((sub, sidx) => (
+                      <span
+                        key={sidx}
+                        className="text-[9px] font-tech px-1.5 py-0.5 rounded bg-black/50 text-slate-300 border border-cyan-500/15"
+                      >
+                        {sub.name} {sub.massKg !== undefined ? `(${sub.massKg.toFixed(2)}kg)` : ''}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })}
 
-          {/* Engine / Motor Assembly Special Highlight Box */}
-          <div className="mt-2 p-2.5 rounded-lg bg-black/40 border border-dashed border-amber-500/30 text-[11px] text-slate-400">
-            <div className="flex items-center gap-1.5 font-orbitron font-bold text-[11px] text-amber-300 uppercase tracking-wider mb-1">
-              <Flame className="w-3.5 h-3.5 text-[#FF5A1F]" />
-              Engine / Motor Assembly Note
+          {/* Mass Summary Footer Card */}
+          <div className="mt-2 p-2.5 rounded-lg bg-black/50 border border-cyan-500/20 font-tech text-xs space-y-1">
+            <div className="flex items-center justify-between text-slate-300 pb-1 border-b border-cyan-500/15">
+              <span className="text-[10px] uppercase tracking-wider flex items-center gap-1">
+                <Scale className="w-3 h-3 text-[#00E5FF]" />
+                Total Wet Mass
+              </span>
+              <span className="font-bold text-[#00E5FF] glow-cyan-text">{VEHICLE_TOTALS.wetMassKg.toFixed(2)} kg</span>
             </div>
-            <p className="text-[11px] leading-relaxed text-slate-400 font-sans">
-              The <strong>Motor Casing</strong> (6.15 kg 6061-T6 aluminium chamber) and supersonic <strong>Nozzle</strong> (0.80 kg aluminium with graphite throat insert) form the integrated single-stage propulsion stack delivering 12.4 kN·s total impulse and 3.6 kN peak thrust.
-            </p>
+            <div className="flex items-center justify-between text-[11px] text-slate-400">
+              <span>Mass without Motor:</span>
+              <span className="font-semibold text-slate-200">{VEHICLE_TOTALS.dryMassKg.toFixed(2)} kg</span>
+            </div>
+            <div className="flex items-center justify-between text-[11px] text-slate-400">
+              <span>Burnout Mass:</span>
+              <span className="font-semibold text-slate-200">{VEHICLE_TOTALS.burnoutMassKg.toFixed(2)} kg</span>
+            </div>
+            <div className="text-[9px] text-slate-500 pt-0.5 italic">
+              Includes 1.00 kg misc hardware / epoxy / paint
+            </div>
           </div>
         </div>
       )}

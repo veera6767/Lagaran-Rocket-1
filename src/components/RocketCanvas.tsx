@@ -90,33 +90,33 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
     if (!cameraPresetTrigger || !controlsRef.current || !cameraRef.current) return;
     const { preset } = cameraPresetTrigger;
 
-    const lookAt = new THREE.Vector3(0, 0.8, 0);
-    const pos = new THREE.Vector3(3.8, 2.0, 4.8);
+    const lookAt = new THREE.Vector3(0, 0.0, 0);
+    const pos = new THREE.Vector3(2.6, 0.4, 3.6);
 
     switch (preset) {
       case 'hero':
-        pos.set(3.4, 1.8, 4.4);
-        lookAt.set(0, 0.7, 0);
+        pos.set(2.6, 0.4, 3.6);
+        lookAt.set(0, 0.0, 0);
         break;
       case 'engine':
-        pos.set(1.9, -1.2, 2.6);
-        lookAt.set(0, -1.2, 0);
+        pos.set(1.2, -1.8, 1.6);
+        lookAt.set(0, -1.8, 0);
         break;
       case 'recovery':
-        pos.set(2.2, 1.1, 2.4);
-        lookAt.set(0, 1.1, 0);
+        pos.set(1.3, 0.0, 1.6);
+        lookAt.set(0, 0.0, 0);
         break;
       case 'payload':
-        pos.set(2.0, 2.2, 2.5);
-        lookAt.set(0, 2.2, 0);
+        pos.set(1.2, 0.8, 1.5);
+        lookAt.set(0, 0.8, 0);
         break;
       case 'nose':
-        pos.set(1.8, 3.8, 2.4);
-        lookAt.set(0, 3.6, 0);
+        pos.set(1.2, 1.8, 1.5);
+        lookAt.set(0, 1.8, 0);
         break;
       case 'full':
-        pos.set(0.2, 1.0, 7.8);
-        lookAt.set(0, 0.9, 0);
+        pos.set(0.0, 0.0, 6.2);
+        lookAt.set(0, 0.0, 0);
         break;
     }
 
@@ -127,8 +127,8 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
   // Handle Reset Camera
   useEffect(() => {
     if (resetCameraTrigger && resetCameraTrigger > 0 && cameraRef.current && controlsRef.current) {
-      cameraTargetPos.current = new THREE.Vector3(3.6, 1.8, 4.6);
-      cameraTargetLookAt.current = new THREE.Vector3(0, 0.8, 0);
+      cameraTargetPos.current = new THREE.Vector3(2.6, 0.4, 3.6);
+      cameraTargetLookAt.current = new THREE.Vector3(0, 0.0, 0);
     }
   }, [resetCameraTrigger]);
 
@@ -167,7 +167,7 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
       0.1,
       100
     );
-    camera.position.set(3.6, 1.8, 4.6);
+    camera.position.set(2.6, 0.4, 3.6);
     cameraRef.current = camera;
 
     // 3. Renderer setup
@@ -202,7 +202,6 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
     ];
 
     for (let i = 0; i < particleCount; i++) {
-      // Distribute particles in a broad cylinder shell around the workspace
       const angle = Math.random() * Math.PI * 2;
       const radius = 6.0 + Math.random() * 28.0;
       const y = -8.0 + Math.random() * 26.0;
@@ -231,7 +230,7 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
     const starDust = new THREE.Points(particleGeo, particleMat);
     scene.add(starDust);
 
-    // 6. Dramatic Futuristic Lighting (Cyan Rim + Crisp Neutral Key)
+    // 6. Dramatic Futuristic Lighting (Cyan Rim + Crisp Neutral Key + Dedicated Nose Rim)
     // 6a. Key Light (Crisp Neutral Softbox)
     const keyLight = new THREE.DirectionalLight(0xf0f6ff, 2.3);
     keyLight.position.set(5.5, 7.5, 6.0);
@@ -252,17 +251,22 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
     rimLight.position.set(-6.5, 4.5, -6.5);
     scene.add(rimLight);
 
-    // 6c. Secondary Rim Light (Cool Blue Edge Glint)
+    // 6c. Dedicated Nose Cone Rim Light (Ensures carbon-fibre grey nose cone pops clearly from all camera angles)
+    const noseRimLight = new THREE.DirectionalLight(0xe8f4ff, 2.5);
+    noseRimLight.position.set(-2.5, 4.5, -3.0);
+    scene.add(noseRimLight);
+
+    // 6d. Secondary Rim Light (Cool Blue Edge Glint)
     const rimLight2 = new THREE.DirectionalLight(0x2fd8ff, 2.0);
     rimLight2.position.set(6.0, -1.2, -5.0);
     scene.add(rimLight2);
 
-    // 6d. Fill Light (Deep Cyan-Indigo Fill)
+    // 6e. Fill Light (Deep Cyan-Indigo Fill)
     const fillLight = new THREE.DirectionalLight(0x10283d, 1.2);
     fillLight.position.set(-5.0, 1.5, 4.5);
     scene.add(fillLight);
 
-    // 6e. Upward Holographic Bounce Light
+    // 6f. Upward Holographic Bounce Light
     const groundBounceLight = new THREE.DirectionalLight(0x002c42, 0.8);
     groundBounceLight.position.set(0, -5, 0);
     scene.add(groundBounceLight);
@@ -271,8 +275,8 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
     const ambientLight = new THREE.AmbientLight(0x050912, 1.2);
     scene.add(ambientLight);
 
-    // 7. Glowing Holographic Grid Floor
-    const gridY = -2.35;
+    // 7. Glowing Holographic Grid Floor (situated just below rocket tail at -2.5)
+    const gridY = -2.75;
     const holographicGrid = new THREE.GridHelper(22, 44, 0x00e5ff, 0x00334d);
     holographicGrid.position.y = gridY;
     if (holographicGrid.material instanceof THREE.Material) {
@@ -319,7 +323,7 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
     scannerBeam.position.y = gridY + 0.003;
     scene.add(scannerBeam);
 
-    // Subtle ground shadow receiver
+    // Ground shadow receiver
     const shadowPlaneGeo = new THREE.PlaneGeometry(16, 16);
     shadowPlaneGeo.rotateX(-Math.PI / 2);
     const shadowPlaneMat = new THREE.ShadowMaterial({ opacity: 0.55 });
@@ -333,35 +337,41 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
     scene.add(rocket.rootGroup);
     modelRef.current = rocket;
 
-    // 9. Stability Markers (Center of Gravity & Center of Pressure) with Glowing HUD styling
+    // 9. Stability Markers (Center of Gravity & Center of Pressure)
+    // Rocket length 2000 mm (5.0 units), nose tip at Y = +2.50.
+    // CG: 1290 mm from nose -> Y = 2.50 - (1290 * 0.0025) = -0.725
+    // CP: 1530 mm from nose -> Y = 2.50 - (1530 * 0.0025) = -1.325
+    // Margin: 240 mm = 0.60 units = +2.38 calibers (target band 2.0 to 2.5 cal)
     const stabilityGroup = new THREE.Group();
     stabilityGroup.name = 'StabilityMarkers';
     stabilityGroup.visible = showStabilityMarkers;
     const stabilityDisposables: (() => void)[] = [];
 
-    // Center of Gravity (CG) marker: 129 cm from nose cone tip (amber glow)
-    const cgY = 0.19;
-    const cgGlyph = createCheckeredGlyph('#FFB300', 'CG: 129 cm');
-    cgGlyph.group.position.set(0.68, cgY, 0);
+    const cgY = -0.725;
+    const cpY = -1.325;
+    const markerX = 0.38;
+
+    // Center of Gravity (CG) marker (amber glow)
+    const cgGlyph = createCheckeredGlyph('#FFB300', 'CG: 1290 mm');
+    cgGlyph.group.position.set(markerX, cgY, 0);
     stabilityGroup.add(cgGlyph.group);
     stabilityDisposables.push(cgGlyph.dispose);
 
-    // Center of Pressure (CP) marker: 153 cm from nose cone tip (electric cyan glow)
-    const cpY = -0.60;
-    const cpGlyph = createCheckeredGlyph('#00E5FF', 'CP: 153 cm');
-    cpGlyph.group.position.set(0.68, cpY, 0);
+    // Center of Pressure (CP) marker (electric cyan glow)
+    const cpGlyph = createCheckeredGlyph('#00E5FF', 'CP: 1530 mm');
+    cpGlyph.group.position.set(markerX, cpY, 0);
     stabilityGroup.add(cpGlyph.group);
     stabilityDisposables.push(cpGlyph.dispose);
 
-    // Line connecting CG and CP showing positive caliber margin (24 cm = +2.38 calibers / 12.2%)
+    // Line connecting CG and CP showing positive caliber margin (+2.38 calibers)
     const marginLineGeo = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(0.68, cgY, 0),
-      new THREE.Vector3(0.68, cpY, 0),
+      new THREE.Vector3(markerX, cgY, 0),
+      new THREE.Vector3(markerX, cpY, 0),
     ]);
     const marginLineMat = new THREE.LineDashedMaterial({
       color: 0x00e5ff,
-      dashSize: 0.05,
-      gapSize: 0.03,
+      dashSize: 0.04,
+      gapSize: 0.02,
       scale: 1,
     });
     const marginLine = new THREE.Line(marginLineGeo, marginLineMat);
@@ -373,8 +383,8 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
     });
 
     // Static margin callout label sprite between CG and CP
-    const marginBadge = createMarginBadge('MARGIN: +2.38 CAL (12.2%)');
-    marginBadge.group.position.set(0.72, (cgY + cpY) / 2, 0);
+    const marginBadge = createMarginBadge('MARGIN: +2.38 CAL (TARGET: 2.0-2.5)');
+    marginBadge.group.position.set(markerX + 0.04, (cgY + cpY) / 2, 0);
     stabilityGroup.add(marginBadge.group);
     stabilityDisposables.push(marginBadge.dispose);
 
@@ -385,9 +395,9 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.minDistance = 1.5;
+    controls.minDistance = 1.2;
     controls.maxDistance = 16;
-    controls.target.set(0, 0.8, 0);
+    controls.target.set(0, 0.0, 0);
     controls.autoRotate = autoRotate;
     controls.autoRotateSpeed = 1.2;
     // Disallow underground view

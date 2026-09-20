@@ -1,13 +1,18 @@
 import React from 'react';
-import { Rocket, Activity, Zap } from 'lucide-react';
-import { VEHICLE_SUMMARY } from '../data/rocketParts';
+import { Rocket, BarChart2, Activity } from 'lucide-react';
+import { VEHICLE_SUMMARY, ROCKET_SPEC } from '../data/rocketParts';
 
 interface HudHeaderProps {
   exploded: boolean;
   selectedPartName?: string | null;
+  onOpenMissionAnalysis?: () => void;
 }
 
-export const HudHeader: React.FC<HudHeaderProps> = ({ exploded, selectedPartName }) => {
+export const HudHeader: React.FC<HudHeaderProps> = ({
+  exploded,
+  selectedPartName,
+  onOpenMissionAnalysis,
+}) => {
   return (
     <header className="pointer-events-auto flex flex-col md:flex-row md:items-center justify-between gap-3 p-3.5 md:p-4 bg-[#05070d]/85 backdrop-blur-xl border border-cyan-500/25 rounded-xl shadow-[0_0_25px_rgba(0,229,255,0.06),0_15px_30px_rgba(0,0,0,0.85)] relative">
       {/* Decorative HUD Corner Bracket Highlights */}
@@ -26,11 +31,11 @@ export const HudHeader: React.FC<HudHeaderProps> = ({ exploded, selectedPartName
               {VEHICLE_SUMMARY.designation}
             </span>
             <span className="px-2 py-0.5 text-[10px] font-tech font-bold tracking-widest uppercase rounded bg-cyan-500/10 text-[#00E5FF] border border-cyan-400/30 shadow-[0_0_8px_rgba(0,229,255,0.2)]">
-              HUD CALLSIGN
+              {ROCKET_SPEC.motor.badge}
             </span>
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-tech text-[#00E5FF] bg-cyan-950/30 rounded border border-cyan-500/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#00E5FF] animate-pulse shadow-[0_0_6px_#00E5FF]" />
-              ONLINE 60FPS
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-tech text-emerald-400 bg-emerald-950/30 rounded border border-emerald-500/30">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />
+              REVIEW 2 PPT
             </span>
           </div>
           <p className="text-xs text-slate-400 font-sans tracking-wide">
@@ -46,12 +51,16 @@ export const HudHeader: React.FC<HudHeaderProps> = ({ exploded, selectedPartName
           <span className="font-bold text-slate-100">{VEHICLE_SUMMARY.totalLengthM.toFixed(2)} m</span>
         </div>
         <div className="px-2.5 py-1.5 rounded-lg bg-black/50 border border-cyan-500/15 hover:border-cyan-400/40 transition-colors flex flex-col shrink-0">
-          <span className="text-[10px] text-slate-400 tracking-wider uppercase">Airframe Dia</span>
-          <span className="font-bold text-slate-100">{VEHICLE_SUMMARY.diameterMm} mm</span>
+          <span className="text-[10px] text-slate-400 tracking-wider uppercase">Airframe (OD / ID)</span>
+          <span className="font-bold text-slate-100">
+            {VEHICLE_SUMMARY.outerDiameterMm} / {VEHICLE_SUMMARY.innerDiameterMm} mm <span className="text-[10px] text-cyan-400 font-normal">({VEHICLE_SUMMARY.wallThicknessMm}mm)</span>
+          </span>
         </div>
         <div className="px-2.5 py-1.5 rounded-lg bg-black/50 border border-cyan-500/15 hover:border-cyan-400/40 transition-colors flex flex-col shrink-0">
           <span className="text-[10px] text-slate-400 tracking-wider uppercase">Wet Mass</span>
-          <span className="font-bold text-[#00E5FF] drop-shadow-[0_0_4px_rgba(0,229,255,0.4)]">{VEHICLE_SUMMARY.wetMassKg.toFixed(2)} kg</span>
+          <span className="font-bold text-[#00E5FF] drop-shadow-[0_0_4px_rgba(0,229,255,0.4)]">
+            {VEHICLE_SUMMARY.wetMassKg.toFixed(2)} kg
+          </span>
         </div>
         <div className="px-2.5 py-1.5 rounded-lg bg-black/50 border border-cyan-500/15 hover:border-cyan-400/40 transition-colors flex flex-col shrink-0">
           <span className="text-[10px] text-slate-400 tracking-wider uppercase">Max Velocity</span>
@@ -61,7 +70,9 @@ export const HudHeader: React.FC<HudHeaderProps> = ({ exploded, selectedPartName
         </div>
         <div className="px-2.5 py-1.5 rounded-lg bg-black/50 border border-cyan-500/15 hover:border-cyan-400/40 transition-colors flex flex-col shrink-0">
           <span className="text-[10px] text-slate-400 tracking-wider uppercase">Target Apogee</span>
-          <span className="font-bold text-slate-100">{VEHICLE_SUMMARY.maxApogeeM.toLocaleString()} m</span>
+          <span className="font-bold text-slate-100 text-[11px]">
+            {VEHICLE_SUMMARY.targetApogeeDisplay}
+          </span>
         </div>
         <div className="px-2.5 py-1.5 rounded-lg bg-black/50 border border-cyan-500/15 hover:border-cyan-400/40 transition-colors flex flex-col shrink-0">
           <span className="text-[10px] text-slate-400 tracking-wider uppercase">View Mode</span>
@@ -69,6 +80,19 @@ export const HudHeader: React.FC<HudHeaderProps> = ({ exploded, selectedPartName
             {exploded ? 'Exploded' : 'Stacked'}
           </span>
         </div>
+
+        {/* Mission Analysis Quick Launch Button */}
+        {onOpenMissionAnalysis && (
+          <button
+            type="button"
+            onClick={onOpenMissionAnalysis}
+            className="px-3 py-1.5 rounded-lg bg-cyan-950/40 hover:bg-cyan-900/50 border border-cyan-400/50 hover:border-cyan-300 text-cyan-200 hover:text-white flex items-center gap-1.5 shrink-0 shadow-[0_0_14px_rgba(0,229,255,0.25)] transition-all cursor-pointer font-orbitron text-[11px] font-bold tracking-wider"
+          >
+            <BarChart2 className="w-3.5 h-3.5 text-[#00E5FF]" />
+            <span>MISSION ANALYSIS</span>
+          </button>
+        )}
+
         {selectedPartName && (
           <div className="px-2.5 py-1.5 rounded-lg bg-cyan-950/40 border border-cyan-400/50 flex flex-col shrink-0 shadow-[0_0_12px_rgba(0,229,255,0.25)]">
             <span className="text-[10px] text-cyan-300 tracking-wider uppercase">Active Target</span>

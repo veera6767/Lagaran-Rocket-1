@@ -4,21 +4,20 @@ import { HudHeader } from './components/HudHeader';
 import { PartsList } from './components/PartsList';
 import { PartInfoPanel } from './components/PartInfoPanel';
 import { ControlBar } from './components/ControlBar';
+import { MissionAnalysisModal } from './components/MissionAnalysisModal';
 import { CameraPreset } from './types';
-import { ROCKET_PARTS } from './data/rocketParts';
-import { MousePointer, Eye, HelpCircle } from 'lucide-react';
+import { ROCKET_PARTS, ROCKET_SPEC } from './data/rocketParts';
+import { MousePointer, BarChart2 } from 'lucide-react';
 
 const getPresetForPart = (id: string): CameraPreset => {
   switch (id) {
-    case 'nozzle':
-    case 'motor-casing':
+    case 'inner-motor':
+    case 'booster-section':
     case 'fins':
       return 'engine';
-    case 'bulkhead-lower':
-    case 'recovery-bay':
+    case 'drogue-bay':
       return 'recovery';
-    case 'bulkhead-upper':
-    case 'payload-bay':
+    case 'avionics-bay':
       return 'payload';
     case 'nose-cone':
       return 'nose';
@@ -36,6 +35,7 @@ export default function App() {
   const [showStabilityMarkers, setShowStabilityMarkers] = useState<boolean>(false);
   const [cameraPresetTrigger, setCameraPresetTrigger] = useState<{ preset: CameraPreset; id: number } | null>(null);
   const [resetCameraTrigger, setResetCameraTrigger] = useState<number>(0);
+  const [isMissionAnalysisOpen, setIsMissionAnalysisOpen] = useState<boolean>(false);
 
   // Active tab on mobile/compact screens ('parts' | 'info' | 'none')
   const [mobileTab, setMobileTab] = useState<'parts' | 'info' | 'none'>('none');
@@ -78,7 +78,6 @@ export default function App() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if user is typing in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
       if (e.code === 'Space') {
@@ -92,6 +91,8 @@ export default function App() {
         setWireframe((prev) => !prev);
       } else if (e.key === 's' || e.key === 'S') {
         setShowStabilityMarkers((prev) => !prev);
+      } else if (e.key === 'm' || e.key === 'M') {
+        setIsMissionAnalysisOpen((prev) => !prev);
       } else if (e.key === '1') {
         handleSelectPreset('hero');
       } else if (e.key === '2') {
@@ -103,13 +104,17 @@ export default function App() {
       } else if (e.key === '5') {
         handleSelectPreset('nose');
       } else if (e.key === 'Escape') {
-        setSelectedPartId(null);
+        if (isMissionAnalysisOpen) {
+          setIsMissionAnalysisOpen(false);
+        } else {
+          setSelectedPartId(null);
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleToggleExplode, handleResetCamera, handleSelectPreset]);
+  }, [handleToggleExplode, handleResetCamera, handleSelectPreset, isMissionAnalysisOpen]);
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-[#050608] text-slate-100 font-sans select-none">
@@ -133,10 +138,14 @@ export default function App() {
       {/* Floating UI HUD Layout */}
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-3 md:p-5">
         {/* Top Header HUD */}
-        <HudHeader exploded={isExploded} selectedPartName={selectedPart ? selectedPart.name : null} />
+        <HudHeader
+          exploded={isExploded}
+          selectedPartName={selectedPart ? selectedPart.name : null}
+          onOpenMissionAnalysis={() => setIsMissionAnalysisOpen(true)}
+        />
 
         {/* Center Lateral Floating Panels (Desktop & Tablet) */}
-        <div className="pointer-events-none flex-1 flex justify-between items-start my-3 gap-4 min-h-0 overflow-hidden">
+        <div className="pointer-events-none flex-1 flex justify-between items-start my-2 gap-4 min-h-0 overflow-hidden">
           {/* Left Panel: Parts Stack Hierarchy */}
           <div className="hidden md:block pointer-events-auto shrink-0 max-h-full">
             <PartsList
@@ -156,6 +165,14 @@ export default function App() {
             <span>Scroll to Zoom</span>
             <span className="text-cyan-500/40">•</span>
             <span className="text-[#00E5FF] glow-cyan-text">Click Section to Inspect</span>
+            <span className="text-cyan-500/40">•</span>
+            <button
+              type="button"
+              onClick={() => setIsMissionAnalysisOpen(true)}
+              className="text-amber-300 hover:text-white underline cursor-pointer pointer-events-auto"
+            >
+              [M] Mission Analysis
+            </button>
           </div>
 
           {/* Right Panel: Subsystem Engineering Inspector */}
@@ -164,6 +181,7 @@ export default function App() {
               selectedPartId={selectedPartId}
               onClose={() => setSelectedPartId(null)}
               onFocusCameraPreset={handleSelectPreset}
+              onOpenMissionAnalysis={() => setIsMissionAnalysisOpen(true)}
             />
           </div>
         </div>
@@ -179,7 +197,7 @@ export default function App() {
                 : 'bg-[#05070d]/90 text-slate-300 border-cyan-500/25 hover:border-cyan-400/50'
             }`}
           >
-            Rocket Structure (8)
+            Rocket Structure (6)
           </button>
           <button
             type="button"
@@ -191,6 +209,13 @@ export default function App() {
             }`}
           >
             Engineering Specs
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsMissionAnalysisOpen(true)}
+            className="px-3 py-1.5 rounded-lg text-xs bg-cyan-950/40 border border-cyan-400/50 text-cyan-200 cursor-pointer"
+          >
+            Analysis
           </button>
         </div>
 
@@ -216,26 +241,50 @@ export default function App() {
                 setMobileTab('none');
               }}
               onFocusCameraPreset={handleSelectPreset}
+              onOpenMissionAnalysis={() => setIsMissionAnalysisOpen(true)}
             />
           </div>
         )}
 
-        {/* Bottom Control Bar */}
-        <ControlBar
-          isExploded={isExploded}
-          explodeProgress={explodeProgress}
-          onToggleExplode={handleToggleExplode}
-          onExplodeProgressChange={handleExplodeProgressChange}
-          autoRotate={autoRotate}
-          onToggleAutoRotate={() => setAutoRotate((prev) => !prev)}
-          onResetCamera={handleResetCamera}
-          onSelectPreset={handleSelectPreset}
-          wireframe={wireframe}
-          onToggleWireframe={() => setWireframe((prev) => !prev)}
-          showStabilityMarkers={showStabilityMarkers}
-          onToggleStabilityMarkers={() => setShowStabilityMarkers((prev) => !prev)}
-        />
+        {/* Bottom Bar: Controls & Small Project Credits Footer */}
+        <div className="space-y-1.5">
+          <ControlBar
+            isExploded={isExploded}
+            explodeProgress={explodeProgress}
+            onToggleExplode={handleToggleExplode}
+            onExplodeProgressChange={handleExplodeProgressChange}
+            autoRotate={autoRotate}
+            onToggleAutoRotate={() => setAutoRotate((prev) => !prev)}
+            onResetCamera={handleResetCamera}
+            onSelectPreset={handleSelectPreset}
+            wireframe={wireframe}
+            onToggleWireframe={() => setWireframe((prev) => !prev)}
+            showStabilityMarkers={showStabilityMarkers}
+            onToggleStabilityMarkers={() => setShowStabilityMarkers((prev) => !prev)}
+            onOpenMissionAnalysis={() => setIsMissionAnalysisOpen(true)}
+          />
+
+          {/* Section 9: Small Footer / Academic Credits */}
+          <footer className="pointer-events-auto text-center font-tech text-[10px] text-slate-400/80 bg-black/60 backdrop-blur-md rounded-lg py-1 px-3 border border-cyan-500/10 flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5">
+            <span>
+              <strong className="text-cyan-300">{ROCKET_SPEC.project.academicContext}.</strong> {ROCKET_SPEC.project.fullTitle}.
+            </span>
+            <span className="text-slate-300">
+              Team: <strong>{ROCKET_SPEC.project.team}</strong>
+            </span>
+            <span className="text-cyan-500/50">•</span>
+            <span className="text-slate-300">
+              Guide: <strong>{ROCKET_SPEC.project.guide}</strong>
+            </span>
+          </footer>
+        </div>
       </div>
+
+      {/* Full Mission Analysis Modal (NASA CEA, OpenMotor, RASAero II, Fin Flutter, Rail Exit) */}
+      <MissionAnalysisModal
+        isOpen={isMissionAnalysisOpen}
+        onClose={() => setIsMissionAnalysisOpen(false)}
+      />
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   Radio,
   Wind,
   Layers,
+  BarChart2,
 } from 'lucide-react';
 import { CameraPreset } from '../types';
 
@@ -28,6 +29,7 @@ interface ControlBarProps {
   onToggleWireframe: () => void;
   showStabilityMarkers: boolean;
   onToggleStabilityMarkers: () => void;
+  onOpenMissionAnalysis?: () => void;
 }
 
 export const ControlBar: React.FC<ControlBarProps> = ({
@@ -43,6 +45,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
   onToggleWireframe,
   showStabilityMarkers,
   onToggleStabilityMarkers,
+  onOpenMissionAnalysis,
 }) => {
   return (
     <div className="pointer-events-auto flex flex-col md:flex-row items-center justify-between gap-3 p-3 bg-[#05070d]/85 backdrop-blur-xl border border-cyan-500/25 rounded-xl shadow-[0_0_25px_rgba(0,229,255,0.06),0_15px_30px_rgba(0,0,0,0.85)] relative">
@@ -190,6 +193,19 @@ export const ControlBar: React.FC<ControlBarProps> = ({
           <RotateCcw className="w-4 h-4" />
           <span className="hidden sm:inline text-[11px] tracking-wider">Reset</span>
         </button>
+
+        {/* Mission Analysis Button */}
+        {onOpenMissionAnalysis && (
+          <button
+            type="button"
+            onClick={onOpenMissionAnalysis}
+            title="Open Mission Analysis (NASA CEA, OpenMotor, RASAero II)"
+            className="p-2 rounded-lg text-xs bg-cyan-950/40 hover:bg-cyan-900/50 border border-cyan-400/40 hover:border-cyan-300 text-cyan-200 hover:text-white transition-all flex items-center gap-1 cursor-pointer shadow-[0_0_10px_rgba(0,229,255,0.2)]"
+          >
+            <BarChart2 className="w-4 h-4 text-[#00E5FF]" />
+            <span className="hidden md:inline text-[11px] font-bold tracking-wider">Analysis</span>
+          </button>
+        )}
       </div>
     </div>
   );
