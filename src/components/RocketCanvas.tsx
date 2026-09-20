@@ -14,6 +14,7 @@ interface RocketCanvasProps {
   autoRotate: boolean;
   wireframe: boolean;
   showStabilityMarkers: boolean;
+  finDetailScale?: boolean;
   cameraPresetTrigger?: { preset: CameraPreset; id: number } | null;
   resetCameraTrigger?: number;
 }
@@ -26,6 +27,7 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
   autoRotate,
   wireframe,
   showStabilityMarkers,
+  finDetailScale = false,
   cameraPresetTrigger,
   resetCameraTrigger,
 }) => {
@@ -78,6 +80,13 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
     }
   }, [wireframe]);
 
+  // Handle visual fin scale toggle (1.5x semi-span magnification for inspection)
+  useEffect(() => {
+    if (modelRef.current) {
+      modelRef.current.setFinVisualScale(finDetailScale ? 1.5 : 1.0);
+    }
+  }, [finDetailScale]);
+
   // Handle stability markers visibility
   useEffect(() => {
     if (stabilityGroupRef.current) {
@@ -97,6 +106,11 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
       case 'hero':
         pos.set(2.6, 0.4, 3.6);
         lookAt.set(0, 0.0, 0);
+        break;
+      case 'fins':
+        // Zoom to tail (last 400 mm of booster section, Y = -2.20) viewed from ~30°, slightly from below
+        pos.set(1.15, -2.55, 0.70);
+        lookAt.set(0, -2.20, 0);
         break;
       case 'engine':
         pos.set(1.2, -1.8, 1.6);
@@ -256,6 +270,11 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
     noseRimLight.position.set(-2.5, 4.5, -3.0);
     scene.add(noseRimLight);
 
+    // 6c-2. Dedicated Rear-Left Fin Rim Light (soft rim light from rear-left so fins are lit in default Iso 45 view)
+    const finRimLight = new THREE.DirectionalLight(0xd4f0e6, 2.2);
+    finRimLight.position.set(-4.5, -1.8, -3.5);
+    scene.add(finRimLight);
+
     // 6d. Secondary Rim Light (Cool Blue Edge Glint)
     const rimLight2 = new THREE.DirectionalLight(0x2fd8ff, 2.0);
     rimLight2.position.set(6.0, -1.2, -5.0);
@@ -334,6 +353,7 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
 
     // 8. Rocket Model
     const rocket = buildRocketModel();
+    rocket.setFinVisualScale(finDetailScale ? 1.5 : 1.0);
     scene.add(rocket.rootGroup);
     modelRef.current = rocket;
 

@@ -44,8 +44,9 @@ export const PartInfoPanel: React.FC<PartInfoPanelProps> = ({
     switch (id) {
       case 'inner-motor':
       case 'booster-section':
-      case 'fins':
         return 'engine';
+      case 'fins':
+        return 'fins';
       case 'drogue-bay':
         return 'recovery';
       case 'avionics-bay':
@@ -252,6 +253,7 @@ export const PartInfoPanel: React.FC<PartInfoPanelProps> = ({
   // =========================================================================
   const isNoseCone = selectedPart.id === 'nose-cone';
   const isMotor = selectedPart.id === 'inner-motor';
+  const isFins = selectedPart.id === 'fins';
 
   return (
     <div className="pointer-events-auto w-full md:w-96 bg-[#05070d]/85 backdrop-blur-xl border border-cyan-500/25 rounded-xl shadow-[0_0_25px_rgba(0,229,255,0.06),0_15px_30px_rgba(0,0,0,0.85)] overflow-hidden flex flex-col max-h-[calc(100vh-140px)] animate-fadeIn relative">
@@ -284,6 +286,11 @@ export const PartInfoPanel: React.FC<PartInfoPanelProps> = ({
                 M1928 Motor
               </span>
             )}
+            {isFins && (
+              <span className="text-[9px] font-tech px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                G10 Composite
+              </span>
+            )}
           </div>
         </div>
 
@@ -313,6 +320,25 @@ export const PartInfoPanel: React.FC<PartInfoPanelProps> = ({
             </div>
             <span className="text-[9px] font-tech px-2 py-0.5 rounded bg-cyan-950/40 text-cyan-300 border border-cyan-500/30 uppercase">
               2x2 Twill Gloss
+            </span>
+          </div>
+        )}
+
+        {/* Colour Swatch for Stabilizing Fins */}
+        {isFins && (
+          <div className="p-2.5 rounded-lg bg-black/50 border border-[#8DB8A0]/30 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <span
+                className="w-5 h-5 rounded-md border border-white/40 shadow-[0_0_8px_rgba(141,184,160,0.6)] inline-block"
+                style={{ backgroundColor: '#8DB8A0' }}
+              />
+              <div>
+                <span className="font-tech text-xs font-bold text-white block">G10 Fibreglass Green</span>
+                <span className="text-[10px] font-tech text-slate-400">Hex #8DB8A0 • Metalness 0.05 • Roughness 0.55</span>
+              </div>
+            </div>
+            <span className="text-[9px] font-tech px-2 py-0.5 rounded bg-emerald-950/40 text-emerald-300 border border-emerald-500/30 uppercase">
+              Matte G10 Finish
             </span>
           </div>
         )}

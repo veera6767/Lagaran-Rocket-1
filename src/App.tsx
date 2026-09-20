@@ -13,8 +13,9 @@ const getPresetForPart = (id: string): CameraPreset => {
   switch (id) {
     case 'inner-motor':
     case 'booster-section':
-    case 'fins':
       return 'engine';
+    case 'fins':
+      return 'fins';
     case 'drogue-bay':
       return 'recovery';
     case 'avionics-bay':
@@ -33,6 +34,7 @@ export default function App() {
   const [autoRotate, setAutoRotate] = useState<boolean>(false);
   const [wireframe, setWireframe] = useState<boolean>(false);
   const [showStabilityMarkers, setShowStabilityMarkers] = useState<boolean>(false);
+  const [finDetailScale, setFinDetailScale] = useState<boolean>(false);
   const [cameraPresetTrigger, setCameraPresetTrigger] = useState<{ preset: CameraPreset; id: number } | null>(null);
   const [resetCameraTrigger, setResetCameraTrigger] = useState<number>(0);
   const [isMissionAnalysisOpen, setIsMissionAnalysisOpen] = useState<boolean>(false);
@@ -103,6 +105,8 @@ export default function App() {
         handleSelectPreset('payload');
       } else if (e.key === '5') {
         handleSelectPreset('nose');
+      } else if (e.key === '6') {
+        handleSelectPreset('fins');
       } else if (e.key === 'Escape') {
         if (isMissionAnalysisOpen) {
           setIsMissionAnalysisOpen(false);
@@ -128,6 +132,7 @@ export default function App() {
         autoRotate={autoRotate}
         wireframe={wireframe}
         showStabilityMarkers={showStabilityMarkers}
+        finDetailScale={finDetailScale}
         cameraPresetTrigger={cameraPresetTrigger}
         resetCameraTrigger={resetCameraTrigger}
       />
@@ -261,6 +266,8 @@ export default function App() {
             onToggleWireframe={() => setWireframe((prev) => !prev)}
             showStabilityMarkers={showStabilityMarkers}
             onToggleStabilityMarkers={() => setShowStabilityMarkers((prev) => !prev)}
+            finDetailScale={finDetailScale}
+            onToggleFinDetailScale={() => setFinDetailScale((prev) => !prev)}
             onOpenMissionAnalysis={() => setIsMissionAnalysisOpen(true)}
           />
 

@@ -32,7 +32,7 @@ export interface RocketPartInfo {
   subParts?: RocketSubPart[];
 }
 
-export type CameraPreset = 'hero' | 'engine' | 'recovery' | 'payload' | 'nose' | 'full';
+export type CameraPreset = 'hero' | 'engine' | 'recovery' | 'payload' | 'nose' | 'full' | 'fins';
 
 export interface ViewerSettings {
   isExploded: boolean;
@@ -40,5 +40,6 @@ export interface ViewerSettings {
   autoRotate: boolean;
   wireframe: boolean;
   showStabilityMarkers: boolean; // Center of Gravity & Center of Pressure
+  finDetailScale?: boolean; // 1.5x visual scaling for inspection
 }
 

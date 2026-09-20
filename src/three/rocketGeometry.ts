@@ -24,6 +24,7 @@ export interface BuiltRocketModel {
   highlightPart: (partId: string | null) => void;
   updateHighlightAnimation: (time: number) => void;
   setWireframe: (enabled: boolean) => void;
+  setFinVisualScale: (scale: number) => void;
   dispose: () => void;
 }
 
@@ -57,6 +58,74 @@ function createHollowTubeGeometry(
   const geo = new THREE.LatheGeometry(points, radialSegments);
   geo.computeVertexNormals();
   return geo;
+}
+
+/**
+ * Creates smooth 3 mm concave aerospace fillets along the fin root chord
+ * where the fin meets the booster tube on both lateral sides (+Z and -Z).
+ */
+function createFinRootFilletGeometry(
+  chordLength: number,
+  filletR: number,
+  halfThickness: number
+): THREE.BufferGeometry {
+  const geom = new THREE.BufferGeometry();
+  const vertices: number[] = [];
+  const normals: number[] = [];
+  const indices: number[] = [];
+
+  const segmentsY = 24;
+  const segmentsArc = 8;
+  const sides = [1, -1];
+
+  sides.forEach((side) => {
+    const baseVertexIndex = vertices.length / 3;
+
+    for (let iy = 0; iy <= segmentsY; iy++) {
+      const y = (iy / segmentsY) * chordLength;
+
+      for (let ia = 0; ia <= segmentsArc; ia++) {
+        const u = ia / segmentsArc;
+        const angle = (u * Math.PI) / 2;
+
+        // Fin face: Z = side * halfThickness, X = filletR * (1 - sin(angle))
+        // Tube face: X = 0, Z = side * (halfThickness + filletR * (1 - cos(angle)))
+        const x = filletR * (1 - Math.sin(angle));
+        const z = side * (halfThickness + filletR * (1 - Math.cos(angle)));
+
+        vertices.push(x, y, z);
+
+        const nx = -Math.cos(angle);
+        const nz = -side * Math.sin(angle);
+        const len = Math.hypot(nx, nz) || 1;
+        normals.push(nx / len, 0, nz / len);
+      }
+    }
+
+    const stride = segmentsArc + 1;
+    for (let iy = 0; iy < segmentsY; iy++) {
+      for (let ia = 0; ia < segmentsArc; ia++) {
+        const p1 = baseVertexIndex + iy * stride + ia;
+        const p2 = baseVertexIndex + (iy + 1) * stride + ia;
+        const p3 = baseVertexIndex + (iy + 1) * stride + ia + 1;
+        const p4 = baseVertexIndex + iy * stride + ia + 1;
+
+        if (side === 1) {
+          indices.push(p1, p3, p2);
+          indices.push(p1, p4, p3);
+        } else {
+          indices.push(p1, p2, p3);
+          indices.push(p1, p3, p4);
+        }
+      }
+    }
+  });
+
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+  geom.setIndex(indices);
+  geom.computeVertexNormals();
+  return geom;
 }
 
 /**
@@ -221,8 +290,12 @@ export function buildRocketModel(): BuiltRocketModel {
   rootGroup.add(motorGroup);
 
   // ----------------------------------------------------
-  // 3. STABILIZING FINS (x4 cruciform, G10 fiberglass)
-  // Root chord 170 mm, tip chord 62 mm, semi-span 85 mm, thickness 6 mm
+  // 3. STABILIZING FINS (x4 cruciform, G10 fibreglass)
+  // Single source of truth: ROCKET_SPEC.fins
+  // Root chord cr = 170 mm, tip chord ct = 62 mm, semi-span b = 85 mm, thickness t = 6 mm
+  // Sweep offset = 108 mm (derived straight trailing edge), sweep angle = 51.8°
+  // 2D outline: (0,0) root LE -> (170,0) root TE -> (170,85) tip TE -> (108,85) tip LE -> back to (0,0)
+  // Flush with booster aft end (tailY = -2.50), embedded 0.5 mm into tube wall
   // ----------------------------------------------------
   const finsGroup = new THREE.Group();
   finsGroup.name = 'fins';
@@ -231,35 +304,55 @@ export function buildRocketModel(): BuiltRocketModel {
   const finTipChord = mmToUnits(ROCKET_SPEC.fins.tipChordMm); // 62 mm -> 0.155
   const finSemiSpan = mmToUnits(ROCKET_SPEC.fins.semiSpanMm); // 85 mm -> 0.2125
   const finThickness = mmToUnits(ROCKET_SPEC.fins.thicknessMm); // 6 mm -> 0.015
-  const finSweep = finRootChord - finTipChord - 0.06; // Supersonic leading edge sweep
+  const finEmbedDepth = mmToUnits(0.5); // 0.5 mm into tube wall to eliminate any visual gap
+  const bevelUnits = mmToUnits(1.5); // 1.5 mm bevel on leading, tip and trailing edges
+  const filletRadius = mmToUnits(3.0); // 3 mm structural aerospace root fillet
 
-  // Construct trapezoidal fin shape in local (span X, chord Y) coordinates
+  // 2D Shape in local (X: outward from body, Y: forward from root trailing edge)
+  // Root trailing edge is at Y = 0 (flush with aft booster tube)
+  // Tip trailing edge is at Y = 0 (straight trailing edge perpendicular to body)
+  // Tip leading edge is at Y = finTipChord = 0.155 (62 mm chord)
+  // Root leading edge is at Y = finRootChord = 0.425 (170 mm chord)
+  // X = -finEmbedDepth goes 0.5 mm into tube wall
+  // X = finSemiSpan is the semi-span (85 mm)
   const finShape = new THREE.Shape();
-  finShape.moveTo(0, 0); // Root trailing edge
-  finShape.lineTo(0, finRootChord); // Root leading edge
-  finShape.lineTo(finSemiSpan, finRootChord - finSweep); // Tip leading edge
-  finShape.lineTo(finSemiSpan, finRootChord - finSweep - finTipChord); // Tip trailing edge
+  finShape.moveTo(-finEmbedDepth, 0); // Root trailing edge
+  finShape.lineTo(finSemiSpan, 0); // Tip trailing edge (flush straight trailing edge)
+  finShape.lineTo(finSemiSpan, finTipChord); // Tip leading edge
+  finShape.lineTo(-finEmbedDepth, finRootChord); // Root leading edge
   finShape.closePath();
 
-  const finExtrudeSettings = {
+  // Core thickness: 6 mm total thickness with 1.5 mm bevel on both faces
+  const coreThickness = Math.max(0.001, finThickness - 2 * bevelUnits); // 3 mm core (0.0075)
+  const finExtrudeSettings: THREE.ExtrudeGeometryOptions = {
     steps: 1,
-    depth: finThickness,
+    depth: coreThickness,
     bevelEnabled: true,
-    bevelThickness: 0.003,
-    bevelSize: 0.003,
-    bevelOffset: -0.003,
+    bevelThickness: bevelUnits,
+    bevelSize: bevelUnits,
+    bevelOffset: -bevelUnits,
     bevelSegments: 3,
   };
 
   const finGeo = new THREE.ExtrudeGeometry(finShape, finExtrudeSettings);
-  finGeo.computeBoundingBox();
-  const minX = finGeo.boundingBox!.min.x;
-  const minY = finGeo.boundingBox!.min.y;
-  const midZ = (finGeo.boundingBox!.min.z + finGeo.boundingBox!.max.z) / 2;
-  finGeo.translate(-minX, -minY, -midZ);
+  // Center along Z on its mid-plane
+  finGeo.translate(0, 0, -(coreThickness / 2 + bevelUnits));
   finGeo.computeVertexNormals();
 
-  const finBaseY = tailY + 0.035; // Mounted near aft end of booster section
+  // 3 mm Root Fillet geometry
+  const finFilletGeo = createFinRootFilletGeometry(finRootChord, filletRadius, finThickness / 2);
+
+  // Thin cyan HUD edge highlight outline (#22D3EE)
+  const finEdgeMat = new THREE.LineBasicMaterial({
+    color: 0x22D3EE,
+    transparent: true,
+    opacity: 0.85,
+    depthWrite: false,
+  });
+  const finEdgesGeo = new THREE.EdgesGeometry(finGeo, 24);
+
+  // Root trailing edge flush with aft end of booster tube (tailY = -2.50)
+  const finBaseY = tailY;
   const finMeshes: THREE.Mesh[] = [];
 
   for (let i = 0; i < 4; i++) {
@@ -269,6 +362,20 @@ export function buildRocketModel(): BuiltRocketModel {
     finMesh.receiveShadow = true;
     finMesh.userData = { partId: 'fins' };
 
+    // Add root fillet mesh
+    const filletMesh = new THREE.Mesh(finFilletGeo, materials.finMaterial);
+    filletMesh.castShadow = true;
+    filletMesh.receiveShadow = true;
+    filletMesh.userData = { partId: 'fins' };
+    finMesh.add(filletMesh);
+
+    // Add thin cyan HUD edge outline
+    const finEdgeLines = new THREE.LineSegments(finEdgesGeo, finEdgeMat);
+    finEdgeLines.raycast = () => {};
+    finEdgeLines.renderOrder = 3;
+    finMesh.add(finEdgeLines);
+
+    // Position at booster tube perimeter
     const posX = Math.cos(angle) * outerRadius;
     const posZ = Math.sin(angle) * outerRadius;
 
@@ -623,9 +730,19 @@ export function buildRocketModel(): BuiltRocketModel {
     });
   };
 
+  const setFinVisualScale = (scale: number) => {
+    finMeshes.forEach((mesh) => {
+      // Scales visual semi-span (radial X) only without altering chord or thickness
+      mesh.scale.set(scale, 1.0, 1.0);
+    });
+  };
+
   const dispose = () => {
     highlightPart(null);
     edgeGlowMat.dispose();
+    finEdgeMat.dispose();
+    finEdgesGeo.dispose();
+    finFilletGeo.dispose();
     rootGroup.traverse((obj) => {
       if (obj instanceof THREE.Mesh) {
         obj.geometry.dispose();
@@ -641,6 +758,7 @@ export function buildRocketModel(): BuiltRocketModel {
     highlightPart,
     updateHighlightAnimation,
     setWireframe,
+    setFinVisualScale,
     dispose,
   };
 }

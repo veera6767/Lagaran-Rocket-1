@@ -29,6 +29,8 @@ interface ControlBarProps {
   onToggleWireframe: () => void;
   showStabilityMarkers: boolean;
   onToggleStabilityMarkers: () => void;
+  finDetailScale?: boolean;
+  onToggleFinDetailScale?: () => void;
   onOpenMissionAnalysis?: () => void;
 }
 
@@ -45,6 +47,8 @@ export const ControlBar: React.FC<ControlBarProps> = ({
   onToggleWireframe,
   showStabilityMarkers,
   onToggleStabilityMarkers,
+  finDetailScale = false,
+  onToggleFinDetailScale,
   onOpenMissionAnalysis,
 }) => {
   return (
@@ -109,8 +113,17 @@ export const ControlBar: React.FC<ControlBarProps> = ({
         </button>
         <button
           type="button"
+          onClick={() => onSelectPreset('fins')}
+          title="Zoom to tail (booster aft section & stabilizing fins)"
+          className="px-2.5 py-1.5 rounded bg-black/40 hover:bg-cyan-950/30 text-slate-300 hover:text-[#8DB8A0] text-xs font-tech border border-cyan-500/15 hover:border-[#8DB8A0]/50 transition-all flex items-center gap-1 cursor-pointer"
+        >
+          <span className="w-2 h-2 rounded-full bg-[#8DB8A0] shadow-[0_0_6px_#8DB8A0]" />
+          <span>Fins</span>
+        </button>
+        <button
+          type="button"
           onClick={() => onSelectPreset('engine')}
-          title="Engine / Motor Assembly & Fins"
+          title="Engine / Motor Assembly & Nozzle"
           className="px-2.5 py-1.5 rounded bg-black/40 hover:bg-cyan-950/30 text-slate-300 hover:text-[#FF5A1F] text-xs font-tech border border-cyan-500/15 hover:border-amber-500/40 transition-all flex items-center gap-1 cursor-pointer"
         >
           <Flame className="w-3 h-3 text-[#FF5A1F]" />
@@ -136,7 +149,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
         </button>
       </div>
 
-      {/* Secondary Controls: Auto-Rotate, Reset, Wireframe, CG/CP */}
+      {/* Secondary Controls: Auto-Rotate, Reset, Wireframe, Fin Detail, CG/CP */}
       <div className="flex items-center gap-1.5 w-full md:w-auto justify-end font-tech">
         {/* Stability Markers Toggle */}
         <button
@@ -167,6 +180,28 @@ export const ControlBar: React.FC<ControlBarProps> = ({
           <Layers className="w-4 h-4" />
           <span className="hidden sm:inline text-[11px] tracking-wider">Wireframe</span>
         </button>
+
+        {/* Fin Detail x1.5 Toggle (Next to Wireframe, OFF by default) */}
+        <div className="relative flex items-center">
+          <button
+            type="button"
+            onClick={onToggleFinDetailScale}
+            title="Toggle Fin Detail visual 1.5x span magnification (Visual only, real span 85 mm)"
+            className={`p-2 rounded-lg text-xs border transition-all flex items-center gap-1 cursor-pointer ${
+              finDetailScale
+                ? 'bg-emerald-500/25 border-emerald-400 text-[#8DB8A0] shadow-[0_0_15px_rgba(141,184,160,0.5)]'
+                : 'bg-black/40 hover:bg-cyan-950/30 border-cyan-500/20 text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Maximize2 className="w-4 h-4 text-[#8DB8A0]" />
+            <span className="hidden sm:inline text-[11px] tracking-wider font-bold">Fin Detail x1.5</span>
+          </button>
+          {finDetailScale && (
+            <div className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-0.5 rounded bg-emerald-950/95 border border-emerald-400/70 text-[10px] text-emerald-200 font-tech pointer-events-none shadow-[0_0_12px_rgba(141,184,160,0.4)]">
+              Visual scale only, real span 85 mm
+            </div>
+          )}
+        </div>
 
         {/* Auto Rotate Toggle */}
         <button

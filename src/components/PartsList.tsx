@@ -36,7 +36,7 @@ export const PartsList: React.FC<PartsListProps> = ({
       case 'inner-motor':
         return <Flame className="w-3.5 h-3.5 text-[#FF5A1F]" />;
       case 'fins':
-        return <Wind className="w-3.5 h-3.5 text-slate-300" />;
+        return <Wind className="w-3.5 h-3.5 text-[#8DB8A0]" />;
       default:
         return <Disc className="w-3.5 h-3.5 text-slate-400" />;
     }

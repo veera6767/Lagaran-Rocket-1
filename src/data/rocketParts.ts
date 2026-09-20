@@ -58,16 +58,25 @@ export const ROCKET_SPEC = {
     },
   },
 
-  // Stabilizing Fins (x4)
+  // Stabilizing Fins (x4) - Single Source of Truth
   fins: {
     count: 4,
     material: 'G10 Fiberglass Composite',
+    colorSwatch: '#8DB8A0',
+    colorName: 'G10 Fibreglass Green',
     rootChordMm: 170,
     tipChordMm: 62,
     semiSpanMm: 85,
     thicknessMm: 6,
     totalMassKg: 0.44, // 0.11 kg per fin
-    spanTipToTipMm: 272, // 102 + 2 * 85
+    sweepMm: 108, // cr - ct = 170 - 62 = 108 mm
+    sweepTag: 'Derived: straight trailing edge, not in review',
+    sweepAngleDeg: Number(((Math.atan(108 / 85) * 180) / Math.PI).toFixed(1)), // 51.8 degrees
+    finAreaMm2: Number((((170 + 62) / 2) * 85).toFixed(0)), // 9,860 mm²
+    spanTipToTipMm: 102 + 2 * 85, // 272 mm
+    trailingEdgeAlignment: 'Straight trailing edge, flush with aft end of booster section (x = 2000 mm)',
+    rootLeadingEdgeMm: 1830, // 2000 - 170 = 1830 mm
+    rootTrailingEdgeMm: 2000,
   },
 
   // Inner Motor: M1928
@@ -454,32 +463,38 @@ export const ROCKET_PARTS: RocketPartInfo[] = [
     name: 'Stabilizing Fins (x4)',
     assembly: 'Aerodynamic Empennage',
     order: 6,
-    material: 'G10 Fiberglass Composite',
-    finish: 'Precision double-wedge supersonic chamfered edges, matte finish',
+    material: 'G10 fibreglass',
+    finish: 'Precision chamfered leading/trailing edges, matte finish',
     massKg: m.finsTotal, // 0.44 kg total
     lengthMm: ROCKET_SPEC.fins.rootChordMm, // 170 mm
-    startMm: 1830,
-    endMm: 2000,
+    startMm: ROCKET_SPEC.fins.rootLeadingEdgeMm, // 1830 mm
+    endMm: ROCKET_SPEC.fins.rootTrailingEdgeMm, // 2000 mm
     outerDiameterMm: ROCKET_SPEC.fins.spanTipToTipMm, // 272 mm
     innerDiameterMm: ROCKET_SPEC.airframe.outerDiameterMm, // 102 mm root circle
     wallThicknessMm: ROCKET_SPEC.fins.thicknessMm, // 6 mm
-    description: 'Cruciform four-fin aerodynamic stabilization empennage machined from G10 fiberglass composite (0.44 kg total mass). Each fin features a 170 mm root chord, 62 mm tip chord, 85 mm semi-span, and 6.0 mm thickness with supersonic double-wedge beveled knife edges. Mounted flush to the aft booster section exterior to provide active aerodynamic restoring moments.',
+    description: 'Trapezoidal G10 fins, straight trailing edge, flush with the aft end of the booster section.',
     technicalDetails: [
-      'Cruciform 4-fin geometry: 170 mm root chord, 62 mm tip chord, 85 mm semi-span, 6 mm thick',
-      'Total empennage mass: 0.44 kg (0.11 kg per fin, reduced from old 1.05 kg)',
-      'G10 fiberglass with shear modulus 5.34 GPa for exceptional aeroelastic stiffness',
-      'NACA TN 4197 fin flutter velocity 1,428 m/s vs max speed 531 m/s (2.69x safety margin)',
-      'Provides aerodynamic stability margin of +2.38 calibers (OpenRocket) / ~2.2 cal (hand calc)'
+      'Material: G10 fibreglass | Count: 4 cruciform (90°)',
+      'Root chord: 170 mm | Tip chord: 62 mm | Semi-span: 85 mm | Thickness: 6 mm',
+      'Fin area: 9,860 mm² each (calculated: (170 + 62) / 2 * 85)',
+      'Tip-to-tip span: 272 mm (calculated: 102 mm body + 2 * 85 mm)',
+      'Leading-edge sweep: 51.8° (calculated, derived: cr - ct = 108 mm, atan(108 / 85))',
+      'Total mass: 0.44 kg (0.11 kg per fin)',
+      'NACA TN 4197 flutter velocity: 1,428 m/s | Safety margin: 2.69x'
     ],
     specs: [
-      { label: 'Fin Count', value: '4 cruciform (90°)' },
+      { label: 'Material', value: 'G10 fibreglass' },
+      { label: 'Fin Count', value: '4' },
       { label: 'Total Mass', value: '0.44 kg' },
       { label: 'Root Chord', value: '170 mm' },
       { label: 'Tip Chord', value: '62 mm' },
       { label: 'Semi-Span', value: '85 mm' },
-      { label: 'Fin Thickness', value: '6.0 mm' },
+      { label: 'Thickness', value: '6 mm' },
+      { label: 'Fin Area (each)', value: '9,860 mm² (calc)' },
+      { label: 'Tip-to-Tip Span', value: '272 mm (calc)' },
+      { label: 'LE Sweep Angle', value: '51.8° (derived)' },
       { label: 'Flutter Velocity', value: '1,428 m/s' },
-      { label: 'Flutter Margin', value: '2.69x (Safe)' }
+      { label: 'Safety Margin', value: '2.69x' }
     ],
     explodedYOffset: -0.6,
     explodedRadialOffset: 0.45

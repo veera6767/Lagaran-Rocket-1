@@ -431,15 +431,15 @@ export function createRocketMaterials() {
     envMapIntensity: 1.7,
   });
 
-  // 3. Four Fins: G10 Fiberglass Composite with matte off-white/cream finish
+  // 3. Four Fins: G10 fibreglass green (#8DB8A0)
   const finMaterial = new THREE.MeshStandardMaterial({
-    color: 0xf0ece1, // Authentic matte off-white / cream G10 composite
+    color: 0x8DB8A0, // Authentic G10 fibreglass green
     map: fiberglassTex,
     bumpMap: fiberglassTex,
-    bumpScale: 0.01,
-    metalness: 0.06,
-    roughness: 0.44,
-    envMapIntensity: 1.1,
+    bumpScale: 0.008,
+    metalness: 0.05,
+    roughness: 0.55,
+    envMapIntensity: 1.2,
   });
 
   // 4 & 6. Bulkheads: 6061-T6 Aluminium discs with precision CNC face
