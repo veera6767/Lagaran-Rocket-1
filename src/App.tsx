@@ -1,12 +1,14 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { RocketCanvas } from './components/RocketCanvas';
 import { HudHeader } from './components/HudHeader';
 import { PartsList } from './components/PartsList';
 import { PartInfoPanel } from './components/PartInfoPanel';
 import { ControlBar } from './components/ControlBar';
 import { MissionAnalysisModal } from './components/MissionAnalysisModal';
+import { GestureManager } from './components/GestureControl/GestureManager';
 import { CameraPreset } from './types';
-import { ROCKET_PARTS, ROCKET_SPEC } from './data/rocketParts';
+import { GestureCameraInput } from './types/gesture';
+import { ROCKET_PARTS } from './data/rocketParts';
 import { MousePointer, BarChart2 } from 'lucide-react';
 
 const getPresetForPart = (id: string): CameraPreset => {
@@ -38,6 +40,11 @@ export default function App() {
   const [cameraPresetTrigger, setCameraPresetTrigger] = useState<{ preset: CameraPreset; id: number } | null>(null);
   const [resetCameraTrigger, setResetCameraTrigger] = useState<number>(0);
   const [isMissionAnalysisOpen, setIsMissionAnalysisOpen] = useState<boolean>(false);
+
+  // Gesture Control State
+  const [isGestureControlActive, setIsGestureControlActive] = useState<boolean>(false);
+  const [gestureError, setGestureError] = useState<string | null>(null);
+  const gestureInputRef = useRef<GestureCameraInput>({ rotateDeltaX: 0, zoomDelta: 0, active: false });
 
   // Active tab on mobile/compact screens ('parts' | 'info' | 'none')
   const [mobileTab, setMobileTab] = useState<'parts' | 'info' | 'none'>('none');
@@ -75,6 +82,23 @@ export default function App() {
     if (partId && window.innerWidth < 768) {
       setMobileTab('info');
     }
+  }, []);
+
+  // Handle Toggle Gesture Control
+  const handleToggleGestureControl = useCallback(() => {
+    setIsGestureControlActive((prev) => {
+      const next = !prev;
+      if (next) {
+        setGestureError(null);
+      }
+      return next;
+    });
+  }, []);
+
+  // Handle Gesture-driven explode change (Fist = Explode 1.0, Peace = Collapse 0.0)
+  const handleGestureExplodeChange = useCallback((explode: boolean, progress: number) => {
+    setIsExploded(explode);
+    setExplodeProgress(progress);
   }, []);
 
   // Keyboard shortcuts
@@ -135,6 +159,7 @@ export default function App() {
         finDetailScale={finDetailScale}
         cameraPresetTrigger={cameraPresetTrigger}
         resetCameraTrigger={resetCameraTrigger}
+        gestureInputRef={gestureInputRef}
       />
 
       {/* Atmospheric Space Vignette */}
@@ -251,46 +276,46 @@ export default function App() {
           </div>
         )}
 
-        {/* Bottom Bar: Controls & Small Project Credits Footer */}
-        <div className="space-y-1.5">
-          <ControlBar
-            isExploded={isExploded}
-            explodeProgress={explodeProgress}
-            onToggleExplode={handleToggleExplode}
-            onExplodeProgressChange={handleExplodeProgressChange}
-            autoRotate={autoRotate}
-            onToggleAutoRotate={() => setAutoRotate((prev) => !prev)}
-            onResetCamera={handleResetCamera}
-            onSelectPreset={handleSelectPreset}
-            wireframe={wireframe}
-            onToggleWireframe={() => setWireframe((prev) => !prev)}
-            showStabilityMarkers={showStabilityMarkers}
-            onToggleStabilityMarkers={() => setShowStabilityMarkers((prev) => !prev)}
-            finDetailScale={finDetailScale}
-            onToggleFinDetailScale={() => setFinDetailScale((prev) => !prev)}
-            onOpenMissionAnalysis={() => setIsMissionAnalysisOpen(true)}
-          />
-
-          {/* Section 9: Small Footer / Academic Credits */}
-          <footer className="pointer-events-auto text-center font-tech text-[10px] text-slate-400/80 bg-black/60 backdrop-blur-md rounded-lg py-1 px-3 border border-cyan-500/10 flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5">
-            <span>
-              <strong className="text-cyan-300">{ROCKET_SPEC.project.academicContext}.</strong> {ROCKET_SPEC.project.fullTitle}.
-            </span>
-            <span className="text-slate-300">
-              Team: <strong>{ROCKET_SPEC.project.team}</strong>
-            </span>
-            <span className="text-cyan-500/50">•</span>
-            <span className="text-slate-300">
-              Guide: <strong>{ROCKET_SPEC.project.guide}</strong>
-            </span>
-          </footer>
-        </div>
+        {/* Bottom Bar: Controls */}
+        <ControlBar
+          isExploded={isExploded}
+          explodeProgress={explodeProgress}
+          onToggleExplode={handleToggleExplode}
+          onExplodeProgressChange={handleExplodeProgressChange}
+          autoRotate={autoRotate}
+          onToggleAutoRotate={() => setAutoRotate((prev) => !prev)}
+          onResetCamera={handleResetCamera}
+          onSelectPreset={handleSelectPreset}
+          wireframe={wireframe}
+          onToggleWireframe={() => setWireframe((prev) => !prev)}
+          showStabilityMarkers={showStabilityMarkers}
+          onToggleStabilityMarkers={() => setShowStabilityMarkers((prev) => !prev)}
+          finDetailScale={finDetailScale}
+          onToggleFinDetailScale={() => setFinDetailScale((prev) => !prev)}
+          onOpenMissionAnalysis={() => setIsMissionAnalysisOpen(true)}
+          isGestureControlActive={isGestureControlActive}
+          onToggleGestureControl={handleToggleGestureControl}
+          gestureError={gestureError}
+          onDismissGestureError={() => setGestureError(null)}
+        />
       </div>
 
       {/* Full Mission Analysis Modal (NASA CEA, OpenMotor, RASAero II, Fin Flutter, Rail Exit) */}
       <MissionAnalysisModal
         isOpen={isMissionAnalysisOpen}
         onClose={() => setIsMissionAnalysisOpen(false)}
+      />
+
+      {/* Webcam Hand-Only Gesture Flight Controller */}
+      <GestureManager
+        isActive={isGestureControlActive}
+        onDeactivate={() => setIsGestureControlActive(false)}
+        onExplodeChange={handleGestureExplodeChange}
+        gestureInputRef={gestureInputRef}
+        onError={(err) => {
+          setGestureError(err);
+          setIsGestureControlActive(false);
+        }}
       />
     </div>
   );

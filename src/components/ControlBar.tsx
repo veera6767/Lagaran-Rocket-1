@@ -13,6 +13,9 @@ import {
   Wind,
   Layers,
   BarChart2,
+  Hand,
+  AlertTriangle,
+  X,
 } from 'lucide-react';
 import { CameraPreset } from '../types';
 
@@ -32,6 +35,10 @@ interface ControlBarProps {
   finDetailScale?: boolean;
   onToggleFinDetailScale?: () => void;
   onOpenMissionAnalysis?: () => void;
+  isGestureControlActive?: boolean;
+  onToggleGestureControl?: () => void;
+  gestureError?: string | null;
+  onDismissGestureError?: () => void;
 }
 
 export const ControlBar: React.FC<ControlBarProps> = ({
@@ -50,6 +57,10 @@ export const ControlBar: React.FC<ControlBarProps> = ({
   finDetailScale = false,
   onToggleFinDetailScale,
   onOpenMissionAnalysis,
+  isGestureControlActive = false,
+  onToggleGestureControl,
+  gestureError,
+  onDismissGestureError,
 }) => {
   return (
     <div className="pointer-events-auto flex flex-col md:flex-row items-center justify-between gap-3 p-3 bg-[#05070d]/85 backdrop-blur-xl border border-cyan-500/25 rounded-xl shadow-[0_0_25px_rgba(0,229,255,0.06),0_15px_30px_rgba(0,0,0,0.85)] relative">
@@ -199,6 +210,43 @@ export const ControlBar: React.FC<ControlBarProps> = ({
           {finDetailScale && (
             <div className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-0.5 rounded bg-emerald-950/95 border border-emerald-400/70 text-[10px] text-emerald-200 font-tech pointer-events-none shadow-[0_0_12px_rgba(141,184,160,0.4)]">
               Visual scale only, real span 85 mm
+            </div>
+          )}
+        </div>
+
+        {/* Gesture Control Toggle */}
+        <div className="relative flex items-center">
+          <button
+            type="button"
+            onClick={onToggleGestureControl}
+            title="Toggle Webcam Hand-Only Gesture Control (Rotate, Zoom, Explode, Collapse)"
+            className={`p-2 rounded-lg text-xs border transition-all flex items-center gap-1.5 cursor-pointer ${
+              isGestureControlActive
+                ? 'bg-emerald-500/25 border-emerald-400 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.5)]'
+                : 'bg-black/40 hover:bg-cyan-950/30 border-cyan-500/20 text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Hand className={`w-4 h-4 ${isGestureControlActive ? 'text-emerald-300' : 'text-slate-400'}`} />
+            <span className="hidden sm:inline text-[11px] tracking-wider font-bold">Gesture</span>
+            {isGestureControlActive && (
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#10B981]" />
+            )}
+          </button>
+
+          {/* Inline HUD Error Tooltip */}
+          {gestureError && (
+            <div className="absolute -top-10 right-0 whitespace-nowrap px-3 py-1 rounded-lg bg-red-950/95 border border-red-500/60 text-[10px] text-red-200 font-tech shadow-[0_0_15px_rgba(239,68,68,0.4)] flex items-center gap-1.5 animate-fadeIn z-50">
+              <AlertTriangle className="w-3 h-3 text-red-400 shrink-0" />
+              <span>{gestureError}</span>
+              {onDismissGestureError && (
+                <button
+                  type="button"
+                  onClick={onDismissGestureError}
+                  className="ml-1 p-0.5 hover:text-white rounded cursor-pointer"
+                >
+                  <X className="w-2.5 h-2.5" />
+                </button>
+              )}
             </div>
           )}
         </div>

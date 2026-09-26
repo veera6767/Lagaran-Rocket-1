@@ -19,7 +19,6 @@ import {
   ROCKET_SPEC,
   VEHICLE_TOTALS,
   MASS_BREAKDOWN,
-  OPENROCKET_SIMULATION,
 } from '../data/rocketParts';
 import { RocketPartInfo, CameraPreset } from '../types';
 
@@ -77,13 +76,10 @@ export const PartInfoPanel: React.FC<PartInfoPanelProps> = ({
               Subsystem Inspector
             </h3>
           </div>
-          <span className="text-[10px] font-tech text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/30">
-            {ROCKET_SPEC.motor.badge}
-          </span>
         </div>
 
         <p className="text-xs text-slate-300 leading-relaxed font-sans">
-          Click any 3D section or select from the Rocket Structure panel to inspect alloy metallurgy, axial coordinates, hollow wall dimensions, and PPT Review 2 verification data.
+          Click any 3D section or select from the Rocket Structure panel to inspect alloy metallurgy, axial coordinates, hollow wall dimensions, and structural verification data.
         </p>
 
         {/* Confirmed Dimensions & Computed Masses (Single Source of Truth) */}
@@ -149,9 +145,6 @@ export const PartInfoPanel: React.FC<PartInfoPanelProps> = ({
                 Flight Simulation Comparison
               </span>
             </div>
-            <span className="text-[9px] font-tech text-cyan-400 bg-cyan-950/50 px-1.5 py-0.5 rounded border border-cyan-500/30 tracking-wider uppercase">
-              OR vs RASAero II
-            </span>
           </div>
 
           <div className="space-y-1 font-tech">
@@ -183,16 +176,16 @@ export const PartInfoPanel: React.FC<PartInfoPanelProps> = ({
             <div className="grid grid-cols-3 gap-1 p-1 rounded bg-black/30 border border-cyan-500/10">
               <span className="text-slate-400">Max Accel.</span>
               <span className="font-bold text-cyan-200">232 m/s² (OR)</span>
-              <span className="text-slate-500">Not in review</span>
+              <span className="text-slate-500">N/A</span>
             </div>
             <div className="grid grid-cols-3 gap-1 p-1 rounded bg-black/30 border border-cyan-500/10">
               <span className="text-slate-400">Peak Drag</span>
-              <span className="text-slate-500">Not in review</span>
+              <span className="text-slate-500">N/A</span>
               <span className="font-bold text-emerald-300">~280 lb</span>
             </div>
             <div className="grid grid-cols-3 gap-1 p-1 rounded bg-black/30 border border-cyan-500/10">
               <span className="text-slate-400">Peak CD</span>
-              <span className="text-slate-500">Not in review</span>
+              <span className="text-slate-500">N/A</span>
               <span className="font-bold text-emerald-300">~1.08</span>
             </div>
           </div>
@@ -411,7 +404,7 @@ export const PartInfoPanel: React.FC<PartInfoPanelProps> = ({
         <div>
           <h4 className="text-[10px] font-tech text-cyan-400/80 uppercase tracking-widest mb-2 flex items-center gap-1">
             <Gauge className="w-3 h-3 text-[#00E5FF]" />
-            Operating Specifications (Review 2 PPT)
+            Operating Specifications
           </h4>
           <div className="grid grid-cols-2 gap-2 font-tech">
             {selectedPart.specs.map((spec, i) => (

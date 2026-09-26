@@ -1,6 +1,6 @@
 import React from 'react';
 import { Rocket, BarChart2, Activity } from 'lucide-react';
-import { VEHICLE_SUMMARY, ROCKET_SPEC } from '../data/rocketParts';
+import { VEHICLE_SUMMARY } from '../data/rocketParts';
 
 interface HudHeaderProps {
   exploded: boolean;
@@ -29,13 +29,6 @@ export const HudHeader: React.FC<HudHeaderProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-orbitron font-extrabold text-lg md:text-2xl tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-white to-cyan-400 glow-cyan-text uppercase">
               {VEHICLE_SUMMARY.designation}
-            </span>
-            <span className="px-2 py-0.5 text-[10px] font-tech font-bold tracking-widest uppercase rounded bg-cyan-500/10 text-[#00E5FF] border border-cyan-400/30 shadow-[0_0_8px_rgba(0,229,255,0.2)]">
-              {ROCKET_SPEC.motor.badge}
-            </span>
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-tech text-emerald-400 bg-emerald-950/30 rounded border border-emerald-500/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />
-              REVIEW 2 PPT
             </span>
           </div>
           <p className="text-xs text-slate-400 font-sans tracking-wide">

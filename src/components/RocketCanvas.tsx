@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { generateProceduralEnvironmentMap } from '../three/proceduralMaterials';
 import { buildRocketModel, BuiltRocketModel } from '../three/rocketGeometry';
 import { CameraPreset } from '../types';
+import { GestureCameraInput } from '../types/gesture';
 
 interface RocketCanvasProps {
   selectedPartId: string | null;
@@ -17,6 +18,7 @@ interface RocketCanvasProps {
   finDetailScale?: boolean;
   cameraPresetTrigger?: { preset: CameraPreset; id: number } | null;
   resetCameraTrigger?: number;
+  gestureInputRef?: React.MutableRefObject<GestureCameraInput | null>;
 }
 
 export const RocketCanvas: React.FC<RocketCanvasProps> = ({
@@ -30,6 +32,7 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
   finDetailScale = false,
   cameraPresetTrigger,
   resetCameraTrigger,
+  gestureInputRef,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const modelRef = useRef<BuiltRocketModel | null>(null);
@@ -534,6 +537,34 @@ export const RocketCanvas: React.FC<RocketCanvasProps> = ({
           controls.target.copy(cameraTargetLookAt.current);
           cameraTargetPos.current = null;
           cameraTargetLookAt.current = null;
+        }
+      }
+
+      // Continuous Gesture Navigation (Azimuth Rotation & Depth Zoom)
+      if (gestureInputRef?.current && gestureInputRef.current.active) {
+        const { rotateDeltaX, zoomDelta } = gestureInputRef.current;
+
+        // 1. Azimuth Rotation (moving hand right rotates view right)
+        if (Math.abs(rotateDeltaX) > 0.0001) {
+          cameraTargetPos.current = null;
+          cameraTargetLookAt.current = null;
+          controls.rotateLeft(rotateDeltaX);
+        }
+
+        // 2. Depth Dolly / Zoom
+        if (Math.abs(zoomDelta) > 0.0001) {
+          cameraTargetPos.current = null;
+          cameraTargetLookAt.current = null;
+          const currentDist = camera.position.distanceTo(controls.target);
+          const newDist = Math.max(
+            controls.minDistance,
+            Math.min(controls.maxDistance, currentDist + zoomDelta)
+          );
+          camera.position
+            .sub(controls.target)
+            .normalize()
+            .multiplyScalar(newDist)
+            .add(controls.target);
         }
       }
 

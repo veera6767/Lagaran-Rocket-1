@@ -129,7 +129,7 @@ function createFinRootFilletGeometry(
 }
 
 /**
- * Builds the complete 3D LAGARAM-1 rocket model with exact Review 2 dimensions and hollow tubes.
+ * Builds the complete 3D LAGARAM-1 rocket model with exact engineering dimensions and hollow tubes.
  */
 export function buildRocketModel(): BuiltRocketModel {
   const materials = createRocketMaterials();

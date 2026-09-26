@@ -24,7 +24,7 @@ export const MissionAnalysisModal: React.FC<MissionAnalysisModalProps> = ({ isOp
 
   if (!isOpen) return null;
 
-  const { nasaCea, motor, flightSimulation, stability, finFlutter, railExitVelocity, project } = ROCKET_SPEC;
+  const { nasaCea, motor, flightSimulation, stability, finFlutter, railExitVelocity } = ROCKET_SPEC;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-fadeIn select-none pointer-events-auto">
@@ -47,12 +47,9 @@ export const MissionAnalysisModal: React.FC<MissionAnalysisModalProps> = ({ isOp
                 <h2 className="font-orbitron font-extrabold text-base sm:text-xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 via-white to-cyan-400 glow-cyan-text uppercase">
                   Mission Analysis & Verification
                 </h2>
-                <span className="px-2 py-0.5 text-[10px] font-tech font-bold uppercase rounded bg-emerald-500/15 text-emerald-400 border border-emerald-400/30">
-                  {project.sourceTag}
-                </span>
               </div>
               <p className="text-xs text-slate-400 font-tech tracking-wide">
-                Single source of truth engineering telemetry • {project.reviewPhase} verification
+                Engineering telemetry and structural verification
               </p>
             </div>
           </div>
@@ -114,7 +111,7 @@ export const MissionAnalysisModal: React.FC<MissionAnalysisModalProps> = ({ isOp
             }`}
           >
             <Activity className="w-3.5 h-3.5" />
-            <span>Flight Sim (OR vs RASAero)</span>
+            <span>Flight Simulation</span>
           </button>
           <button
             type="button"
@@ -242,9 +239,6 @@ export const MissionAnalysisModal: React.FC<MissionAnalysisModalProps> = ({ isOp
                     b) Solid Rocket Motor — OpenMotor ({motor.designation})
                   </h3>
                 </div>
-                <span className="text-[10px] font-tech text-cyan-300 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/30">
-                  {motor.badge}
-                </span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-tech">
@@ -321,9 +315,6 @@ export const MissionAnalysisModal: React.FC<MissionAnalysisModalProps> = ({ isOp
                     c) Flight Simulation Comparison (Side by Side)
                   </h3>
                 </div>
-                <span className="text-[10px] font-tech text-cyan-300 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/30">
-                  OpenRocket vs RASAero II
-                </span>
               </div>
 
               <div className="overflow-x-auto">
@@ -364,18 +355,18 @@ export const MissionAnalysisModal: React.FC<MissionAnalysisModalProps> = ({ isOp
                     <tr>
                       <td className="p-2.5 font-bold text-slate-300">Max Acceleration</td>
                       <td className="p-2.5 font-bold text-slate-100">{flightSimulation.openRocket.maxAccelerationMs2} m/s² (OpenRocket)</td>
-                      <td className="p-2.5 text-slate-500 italic">Not in review</td>
+                      <td className="p-2.5 text-slate-500 italic">N/A</td>
                       <td className="p-2.5 text-slate-400">OpenRocket run only</td>
                     </tr>
                     <tr>
                       <td className="p-2.5 font-bold text-slate-300">Peak Aerodynamic Drag</td>
-                      <td className="p-2.5 text-slate-500 italic">Not in review</td>
+                      <td className="p-2.5 text-slate-500 italic">N/A</td>
                       <td className="p-2.5 font-bold text-emerald-300">{flightSimulation.rasAeroII.peakDragLb}</td>
                       <td className="p-2.5 text-slate-400">RASAero II modified Barrowman model</td>
                     </tr>
                     <tr>
                       <td className="p-2.5 font-bold text-slate-300">Peak Drag Coeff (CD)</td>
-                      <td className="p-2.5 text-slate-500 italic">Not in review</td>
+                      <td className="p-2.5 text-slate-500 italic">N/A</td>
                       <td className="p-2.5 font-bold text-emerald-300">{flightSimulation.rasAeroII.peakCd}</td>
                       <td className="p-2.5 text-slate-400">Transonic wave drag rise</td>
                     </tr>
@@ -517,19 +508,6 @@ export const MissionAnalysisModal: React.FC<MissionAnalysisModalProps> = ({ isOp
               </p>
             </section>
           )}
-        </div>
-
-        {/* Section 9: Footer Credits */}
-        <div className="p-3 sm:p-4 border-t border-cyan-500/20 bg-black/70 flex flex-col sm:flex-row items-center justify-between gap-2 font-tech text-[11px] text-slate-400">
-          <div className="text-center sm:text-left">
-            <span className="text-cyan-300 font-bold block sm:inline">{project.academicContext}. </span>
-            <span>{project.fullTitle}</span>
-          </div>
-          <div className="text-center sm:text-right shrink-0">
-            <span className="text-slate-300">Team: <strong>{project.team}</strong></span>
-            <span className="mx-1 text-cyan-500">•</span>
-            <span className="text-slate-300">Guide: <strong>{project.guide}</strong></span>
-          </div>
         </div>
       </div>
     </div>

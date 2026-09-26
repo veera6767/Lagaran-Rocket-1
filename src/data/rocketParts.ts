@@ -2,18 +2,13 @@ import { RocketPartInfo } from '../types';
 
 /**
  * =========================================================================
- * ROCKET_SPEC: Single Source of Truth for Geometry, Masses, and Review 2 PPT Data
+ * ROCKET_SPEC: Single Source of Truth for Geometry, Masses, and Specifications
  * =========================================================================
  */
 export const ROCKET_SPEC = {
   project: {
     name: 'LAGARAM-1',
     fullTitle: 'Performance Characterization of a Sounding Rocket for Weather Applications',
-    academicContext: 'B.Tech Aerospace Engineering, Final Year Project Phase 1',
-    team: 'Jayanthan M, Hari Kasav C',
-    guide: 'Dr. Vishnu Kumar G.C, Associate Professor',
-    reviewPhase: 'Review 2',
-    sourceTag: 'Source: Review 2 PPT',
   },
 
   airframe: {
@@ -70,7 +65,7 @@ export const ROCKET_SPEC = {
     thicknessMm: 6,
     totalMassKg: 0.44, // 0.11 kg per fin
     sweepMm: 108, // cr - ct = 170 - 62 = 108 mm
-    sweepTag: 'Derived: straight trailing edge, not in review',
+    sweepTag: 'Derived: straight trailing edge',
     sweepAngleDeg: Number(((Math.atan(108 / 85) * 180) / Math.PI).toFixed(1)), // 51.8 degrees
     finAreaMm2: Number((((170 + 62) / 2) * 85).toFixed(0)), // 9,860 mm²
     spanTipToTipMm: 102 + 2 * 85, // 272 mm
@@ -136,15 +131,15 @@ export const ROCKET_SPEC = {
       maxMach: 1.58,
       timeToApogeeS: 29.8,
       maxAccelerationMs2: 232, // Labelled explicitly as OpenRocket run
-      peakDragLb: 'Not in review',
-      peakCd: 'Not in review',
+      peakDragLb: 'N/A',
+      peakCd: 'N/A',
     },
     rasAeroII: {
       apogeeM: 4493,
       maxVelocityMs: 528.5,
       maxMach: 1.55,
       timeToApogeeS: 27.5,
-      maxAccelerationMs2: 'Not in review',
+      maxAccelerationMs2: 'N/A',
       peakDragLb: '~280 lb',
       peakCd: '~1.08',
     },
@@ -255,7 +250,7 @@ export const MASS_BREAKDOWN = [
 
 /**
  * =========================================================================
- * ROCKET_PARTS: Rebuilt nose-to-tail with exact Review 2 PPT data & Section 2 layout
+ * ROCKET_PARTS: Rebuilt nose-to-tail with exact engineering data & layout
  * =========================================================================
  */
 export const ROCKET_PARTS: RocketPartInfo[] = [
@@ -532,7 +527,7 @@ export const VEHICLE_SUMMARY = {
 
 export const OPENROCKET_SIMULATION = {
   software: 'OpenRocket + RASAero II',
-  status: 'Review 2 PPT Confirmed',
+  status: 'Engineering Verified',
   totalLengthCm: 200,
   totalLengthM: 2.00,
   maxDiameterMm: 102,

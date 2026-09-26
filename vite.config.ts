@@ -5,7 +5,7 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
-    base: '/Lagaran-Rocket-1/',
+    base: '/Lagaram-Rocket-1G/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
